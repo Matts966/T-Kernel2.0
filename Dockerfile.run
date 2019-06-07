@@ -1,0 +1,6 @@
+FROM ubuntu:18.04
+RUN mkdir -p /usr/local/tef_em1d/tool/qemu/bin
+COPY emulator/tef_em1d/Linux/*  /usr/local/tef_em1d/tool/qemu/bin/
+COPY emulator/tef_em1d/Image/* /usr/local/tef_em1d/tool/qemu/bin/
+WORKDIR /usr/local/tef_em1d/tool/qemu/bin
+

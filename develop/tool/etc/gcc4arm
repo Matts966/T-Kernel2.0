@@ -1,0 +1,16 @@
+#!/bin/sh
+#	@(#)gcc4arm 09-11-16
+#	Copyright 2011 by Ken Sakamura.
+#	This software is distributed under the T-License 2.0.
+
+: ${BD:=/usr/local/te}
+: ${GNU_BD:=$BD/tool/`$BD/etc/platform`}
+: ${_GNU_CONFIG:=arm_2-unknown-tkernel}
+
+if test "${APD_LD_LIB_PATH}" = "" ; then
+  LD_LIBRARY_PATH=${GNU_BD}/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+  export LD_LIBRARY_PATH
+fi
+
+exec ${GNU_BD}/bin/${_GNU_CONFIG}-gcc \
+	"$@"

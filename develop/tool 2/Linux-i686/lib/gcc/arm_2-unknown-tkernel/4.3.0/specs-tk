@@ -1,0 +1,5 @@
+*endfile:
+crtend.o%s crtn.o%s
+
+*startfile:
+%{!r: %{q:%e-q is not supported. Use default specs.} %{!shared: %{!static:%eUse default specs.} %{static:crt0.o%s crtir.o%s crtbegin.o%s crttk.o%s}} %{shared:%e-shared is not supported. Use default specs.}} %{r:%e-r is not supported. Use default specs.}
