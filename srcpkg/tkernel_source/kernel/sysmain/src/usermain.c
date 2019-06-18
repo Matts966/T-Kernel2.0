@@ -31,7 +31,7 @@ IMPORT ER ScreenDrv( INT ac, UB *av[] );
 IMPORT ER KbPdDrv( INT ac, UB *av[] );
 IMPORT ER LowKbPdDrv( INT ac, UB *av[] );
 
-#ifdef DEBUG_SAMPLE
+// #ifdef DEBUG_SAMPLE
 /*-----------------------------------------------------------------------------
 	debug sample
 -----------------------------------------------------------------------------*/
@@ -111,7 +111,7 @@ LOCAL	void	debug_sample(void)
 err_ret:
 	return;
 }
-#endif	/* DEBUG_SAMPLE */
+/* #endif	 DEBUG_SAMPLE */
 
 /*
  * Entry routine for the user application.
@@ -162,7 +162,16 @@ EXPORT	INT	usermain( void )
 
 	/* System shutdown */
 	tm_putstring((UB*)"Push any key to shutdown the T-Kernel.\n");
-	tm_getchar(-1);
+	while(1) {
+		tm_putstring((UB*)"Push any key\n");
+		UB in[4];
+		tm_getline(in);
+		if (0 == tkl_strcmp(in, (UB*)"exit")) {
+			return 0;
+		}
+		tm_putstring(in);
+		tm_putstring((UB*)"\n");
+	}
 
 	/* Stop the device drivers */
 #ifdef DRV_LOWKBPD

@@ -9,10 +9,10 @@ WORKDIR /usr/local/tef_em1d/tool/qemu/qemu-0.12.4-tef_em1d
 RUN ./configure --target-list=arm-softmmu --disable-blobs --prefix=/usr/local/tef_em1d/tool/qemu
 RUN make install
 RUN mv /usr/local/tef_em1d/tool/qemu/bin/qemu-system-arm /usr/local/tef_em1d/tool/qemu/bin/qemu-tef_em1d
-COPY docker-entrypoint.sh /usr/local/tef_em1d/tool/qemu/bin/
-RUN chmod +x /usr/local/tef_em1d/tool/qemu/bin/docker-entrypoint.sh
 ADD develop/te.Linux-i686.common.15.tar.gz /usr/local/tef_em1d/
 ADD develop/te.Linux-i686.arm_2.1.0.3.tar.gz /usr/local/tef_em1d/
+COPY docker-entrypoint.sh /usr/local/tef_em1d/tool/qemu/bin/
+RUN chmod +x /usr/local/tef_em1d/tool/qemu/bin/docker-entrypoint.sh
 
 # Use COPY instead of ADD for building kernel.
 COPY srcpkg/tkernel_source /usr/local/tef_em1d/tkernel_source
