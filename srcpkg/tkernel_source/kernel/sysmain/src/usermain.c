@@ -161,9 +161,9 @@ EXPORT	INT	usermain( void )
 #endif
 
 	/* System shutdown */
-	tm_putstring((UB*)"Push any key to shutdown the T-Kernel.\n");
+	// tm_putstring((UB*)"Push any key to shutdown the T-Kernel.\n");
 	while(1) {
-		tm_putstring((UB*)"Push any key\n");
+		tm_putstring((UB*)"Push any key.\n");
 		UB in[4];
 		tm_getline(in);
 		if (0 == tkl_strcmp(in, (UB*)"exit")) {
