@@ -30,7 +30,7 @@
 -sd ${2:-/usr/local/tef_em1d/tool/qemu/bin/sd.img} \
 -rtc base=localtime \
 -serial tcp:127.0.0.1:10000,server \
--vnc 127.0.0.1:0 \
+-vnc 0.0.0.0:0 \
 -tp xmin=944,xmax=64,ymin=912,ymax=80,xchg=on \
 -dipsw dbgsw=on \
 $3 $4 $5 $6

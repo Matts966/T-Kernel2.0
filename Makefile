@@ -1,6 +1,6 @@
 run:
 	docker build -t qt .
-	docker run --rm -it --name qt qt
+	docker run --rm -it --name qt -p 5900:5900 qt
 start:
 	docker run --rm -it --name qt qt
 restart:
