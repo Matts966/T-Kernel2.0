@@ -18,7 +18,7 @@ RUN cd /usr/local/tef_em1d/t2ex_source \
     && cp -r * ../tkernel_source \
     && rm -rf /usr/local/tef_em1d/t2ex_source
 
-# Use the working directory below instead of below of it if extension is not needed.
+# Use this working directory instead of below if extension is not needed.
 # WORKDIR /usr/local/tef_em1d/tkernel_source/kernel/sysmain/build/tef_em1d
 WORKDIR /usr/local/tef_em1d/tkernel_source/kernel/sysmain/build_t2ex/tef_em1d
 RUN GNU_BD=/usr/local/tef_em1d/tool/Linux-i686 GNUARM_2=$GNU_BD/arm_2-unknown-tkernel BD=/usr/local/tef_em1d/tkernel_source GCC_EXEC_PREFIX=$GNU_BD/lib/gcc/ GNUarm_2=$GNU_BD/arm_2-unknown-tkernel make clean
