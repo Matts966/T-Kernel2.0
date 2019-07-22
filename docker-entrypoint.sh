@@ -1,4 +1,18 @@
 #!/bin/bash
-./qemu.sh ${1:-/usr/local/tef_em1d/tool/qemu/bin/rom.bin} sd.img > /dev/null &
+function EPHEMERAL_PORT() {
+    LOW_BOUND=10000
+    RANGE=500
+    while true; do
+        CANDIDATE=$[$LOW_BOUND + ($RANDOM % $RANGE)]
+        (echo "" >/dev/tcp/127.0.0.1/${CANDIDATE}) >/dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            echo $CANDIDATE
+            break
+        fi
+    done
+}
+PORT=$(EPHEMERAL_PORT)
+VNC=$1
+./qemu.sh ${2:-/usr/local/tef_em1d/tool/qemu/bin/rom.bin} sd.img $PORT $VNC > /dev/null &
 sleep 3
-/usr/local/tef_em1d/tool/Linux-i686/etc/gterm -l localhost:10000
+/usr/local/tef_em1d/tool/Linux-i686/etc/gterm -l localhost:$PORT

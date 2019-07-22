@@ -32,4 +32,4 @@ WORKDIR /usr/local/tef_em1d/tool/qemu/bin/
 ENTRYPOINT [ "./docker-entrypoint.sh" ]
 
 # Remove this CMD if extension is not needed.
-CMD [ "/usr/local/tef_em1d/tkernel_source/kernel/sysmain/build_t2ex/tef_em1d/rom_t2ex.bin" ]
+CMD [ "false", "/usr/local/tef_em1d/tkernel_source/kernel/sysmain/build_t2ex/tef_em1d/rom_t2ex.bin" ]

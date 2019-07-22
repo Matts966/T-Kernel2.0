@@ -55,6 +55,9 @@
 #include <tk/tkernel.h>
 #include <tm/tmonitor.h>
 
+#include <server.c>
+#include <client.c>
+
 #ifdef	USE_T2EX_FS
 #define	P			printf
 #define	Gets(buf, bufsz)	fgets(buf, bufsz, stdin)
@@ -62,6 +65,10 @@
 #define	P			tm_printf
 #define	Gets(buf, bufsz)	tm_getline(buf)
 #endif
+
+/* Client Server Application program */
+IMPORT void server(void);
+IMPORT void client(void);
 
 /* Command functions */
 IMPORT	INT	exec_cmd(B *cmd);
@@ -74,6 +81,45 @@ EXPORT	void	appl_main( void )
 {
 	B	buf[256];
 	INT	fin, n;
+
+	/* Server application */
+	for (fin = 0; fin == 0; ) {
+		P("Server >> ");
+		Gets(buf, sizeof(buf));
+		for (n = strlen(buf); --n >= 0 && buf[n] <= ' '; )
+			buf[n] = '\0';
+
+		if (strncmp(buf, "quit", 1) == 0) {
+			fin = 1;
+		} else if (strncmp(buf, "go", 1) == 0) {
+			server();
+		} else {
+			if (exec_cmd(buf) == 0) {
+				P("q[uit]      quit\n");
+				P("go          exec Server application\n");
+			}
+		}
+	}
+
+	/* Client application */
+	for (fin = 0; fin == 0; ) {
+		P("Client >> ");
+		Gets(buf, sizeof(buf));
+		for (n = strlen(buf); --n >= 0 && buf[n] <= ' '; )
+			buf[n] = '\0';
+
+		if (strncmp(buf, "quit", 1) == 0) {
+			fin = 1;
+		} else if (strncmp(buf, "go", 1) == 0) {
+			client();
+		} else {
+			if (exec_cmd(buf) == 0) {
+				P("q[uit]      quit\n");
+				P("go          exec Client application\n");
+			}
+		}
+	}
+
 
 	/* initialize calendar date */
 	init_calendar_date();
@@ -103,4 +149,3 @@ EXPORT	void	appl_main( void )
 		}
 	}
 }
-
