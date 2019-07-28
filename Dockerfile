@@ -24,6 +24,8 @@ WORKDIR /usr/local/tef_em1d/tkernel_source/kernel/sysmain/build_t2ex/tef_em1d
 RUN GNU_BD=/usr/local/tef_em1d/tool/Linux-i686 GNUARM_2=$GNU_BD/arm_2-unknown-tkernel BD=/usr/local/tef_em1d/tkernel_source GCC_EXEC_PREFIX=$GNU_BD/lib/gcc/ GNUarm_2=$GNU_BD/arm_2-unknown-tkernel make clean
 RUN GNU_BD=/usr/local/tef_em1d/tool/Linux-i686 GNUARM_2=$GNU_BD/arm_2-unknown-tkernel BD=/usr/local/tef_em1d/tkernel_source GCC_EXEC_PREFIX=$GNU_BD/lib/gcc/ GNUarm_2=$GNU_BD/arm_2-unknown-tkernel make emu
 
+RUN apt-get install -y bridge-utils net-tools
+
 COPY docker-entrypoint.sh /usr/local/tef_em1d/tool/qemu/bin/
 RUN chmod +x /usr/local/tef_em1d/tool/qemu/bin/docker-entrypoint.sh
 COPY emulator/tef_em1d/Linux/* /usr/local/tef_em1d/tool/qemu/bin/
