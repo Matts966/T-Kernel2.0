@@ -114,8 +114,12 @@ REQ_MODULES = libraries tkernel sysmgr sysinit drivers
 # make targets
 .PHONY: all emu clean install install_emu
 .PHONY: source clean_source clean_all
-.PHONY: tkernel sysmgr sysinit libraries drivers config monitor 
+.PHONY: tkernel sysmgr sysinit libraries drivers config monitor
 .PHONY: clean_libraries clean_drivers clean_config clean_monitor
+
+# required modules
+req: $(REQ_MODULES)
+	@echo "required modules are compiled!"
 
 # default make targets
 all: $(REQ_MODULES) $(TARGET_RAMCRT0) $(TARGET_ROMCRT0)
@@ -202,12 +206,12 @@ monitor:
 clean_monitor:
 	( cd $(BLD_MONITOR_PATH) ; $(MAKE) $(DBGOPT) clean )
 
-# make source files of svc interface 
+# make source files of svc interface
 source:
 	( cd $(BLD_LIBS_PATH) ; $(MAKE) $(DBGOPT) source )
 	( cd $(BLD_DRIVER_PATH) ; $(MAKE) $(DBGOPT) source )
 
-# clean source files of svc interface 
+# clean source files of svc interface
 clean_source:
 	( cd $(BLD_LIBS_PATH) ; $(MAKE) $(DBGOPT) clean_source )
 	( cd $(BLD_DRIVER_PATH) ; $(MAKE) $(DBGOPT) clean_source )
@@ -234,4 +238,3 @@ $(addprefix $(EXE_INSTALLDIR)/, $(TARGET)): $(EXE_INSTALLDIR)/%: %
 # generate dependencies
 $(DEPS): ; touch $(DEPS)
 -include $(DEPS)
-

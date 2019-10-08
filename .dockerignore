@@ -9,6 +9,7 @@
 !/srcpkg/tkernel_source/**
 !/docker-entrypoint.sh
 !/T2EX/srcpkg/t2ex_source/**
+!/src/**
 
 # Ignore unnecessary files inside allowed directories
 # This should go after the allowed directories

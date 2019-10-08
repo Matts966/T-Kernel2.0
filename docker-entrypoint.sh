@@ -13,6 +13,6 @@ function EPHEMERAL_PORT() {
 }
 PORT=$(EPHEMERAL_PORT)
 VNC=$1
-./qemu.sh ${2:-/usr/local/tef_em1d/tool/qemu/bin/rom.bin} sd.img $PORT $VNC > /dev/null &
+./qemu.sh ${2:-/usr/local/srcpkg/tool/qemu/bin/rom.bin} sd.img $PORT $VNC > /dev/null &
 sleep 3
-/usr/local/tef_em1d/tool/Linux-i686/etc/gterm -l localhost:$PORT
+/usr/local/srcpkg/tool/Linux-i686/etc/gterm -l localhost:$PORT

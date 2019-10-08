@@ -14,34 +14,34 @@
 #
 
 #
-# This software package is available for use, modification, 
-# and redistribution in accordance with the terms of the attached 
+# This software package is available for use, modification,
+# and redistribution in accordance with the terms of the attached
 # T-License 2.x.
-# If you want to redistribute the source code, you need to attach 
+# If you want to redistribute the source code, you need to attach
 # the T-License 2.x document.
-# There's no obligation to publish the content, and no obligation 
-# to disclose it to the TRON Forum if you have modified the 
+# There's no obligation to publish the content, and no obligation
+# to disclose it to the TRON Forum if you have modified the
 # software package.
-# You can also distribute the modified source code. In this case, 
+# You can also distribute the modified source code. In this case,
 # please register the modification to T-Kernel traceability service.
-# People can know the history of modifications by the service, 
-# and can be sure that the version you have inherited some 
+# People can know the history of modifications by the service,
+# and can be sure that the version you have inherited some
 # modification of a particular version or not.
 #
 #    http://trace.tron.org/tk/?lang=en
 #    http://trace.tron.org/tk/?lang=ja
 #
-# As per the provisions of the T-License 2.x, TRON Forum ensures that 
-# the portion of the software that is copyrighted by Ken Sakamura or 
+# As per the provisions of the T-License 2.x, TRON Forum ensures that
+# the portion of the software that is copyrighted by Ken Sakamura or
 # the TRON Forum does not infringe the copyrights of a third party.
 # However, it does not make any warranty other than this.
 # DISCLAIMER: TRON Forum and Ken Sakamura shall not be held
 # responsible for any consequences or damages caused directly or
 # indirectly by the use of this software package.
 #
-# The source codes in bsd_source.tar.gz in this software package are 
+# The source codes in bsd_source.tar.gz in this software package are
 # derived from NetBSD or OpenBSD and not covered under T-License 2.x.
-# They need to be changed or redistributed according to the 
+# They need to be changed or redistributed according to the
 # representation of each source header.
 #
 
@@ -209,11 +209,15 @@ REQ_MODULES = libraries tkernel sysmgr sysinit drivers $(ADD_MODULES)
 # make targets
 .PHONY: all emu clean install install_emu
 .PHONY: source clean_source clean_all
-.PHONY: tkernel sysmgr sysinit libraries drivers config monitor 
+.PHONY: tkernel sysmgr sysinit libraries drivers config monitor
 .PHONY: clean_libraries clean_drivers clean_config clean_monitor
 ifdef  T2EX
 .PHONY: datetime load fs net
 endif
+
+# required modules
+req: $(REQ_MODULES)
+	@echo "required modules are compiled!"
 
 # default make targets
 all: $(REQ_MODULES) $(TARGET_RAMCRT0) $(TARGET_ROMCRT0)
@@ -314,7 +318,7 @@ monitor:
 clean_monitor:
 	( cd $(BLD_MONITOR_PATH) ; $(MAKE) $(DBGOPT) clean )
 
-# make source files of svc interface 
+# make source files of svc interface
 source:
 	( cd $(BLD_LIBS_PATH) ; $(MAKE) $(DBGOPT) source )
 	( cd $(BLD_DRIVER_PATH) ; $(MAKE) $(DBGOPT) source )
@@ -325,7 +329,7 @@ ifdef  T2EX
 	( cd $(BLD_NET_PATH) ; $(MAKE) $(DBGOPT) source )
 endif
 
-# clean source files of svc interface 
+# clean source files of svc interface
 clean_source:
 	( cd $(BLD_LIBS_PATH) ; $(MAKE) $(DBGOPT) clean_source )
 	( cd $(BLD_DRIVER_PATH) ; $(MAKE) $(DBGOPT) clean_source )
@@ -350,7 +354,7 @@ endif
 	$(RM) $(OBJ) $(U_OBJ) $(TARGET_RAMCRT0) $(TARGET_ROMCRT0) $(ALL) $(DEPS)
 	$(RM) $(TARGET_EMU) $(TARGET_DBG_EMU)
 
-# clean all objects and source files of svc interface 
+# clean all objects and source files of svc interface
 clean_all: clean clean_source
 
 # install kernel target
@@ -364,4 +368,3 @@ $(addprefix $(EXE_INSTALLDIR)/, $(TARGET)): $(EXE_INSTALLDIR)/%: %
 # generate dependencies
 $(DEPS): ; touch $(DEPS)
 -include $(DEPS)
-
