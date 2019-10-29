@@ -10,4 +10,4 @@ make
 
 ## License
 
-This repository is distributed under T-License.
+This repository is distributed under [T-License](https://www.tron.org/download/index.php?route=information/information&information_id=40).
