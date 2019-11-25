@@ -1,6 +1,7 @@
 #include <tk/tkernel.h>
 #include <tm/tmonitor.h>
 #include <libstr.h>
+#include "wolfmqtt/mqtt_client.h"
 
 typedef enum { TASK_A, TASK_B, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
@@ -26,7 +27,36 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
+LOCAL int mqttclient_message_cb(MqttClient* client, MqttMessage* msg, byte msg_new, byte msg_done) {
+	if (msg_new) {
+		/* Message new */
+	}
+	if (msg_done) {
+		/* Message done */
+	}
+	return MQTT_CODE_SUCCESS;
+	/* Return negative to terminate publish processing */
+}
+LOCAL void setupMQTT(void) {
+	#define MAX_BUFFER_SIZE         1024
+	#define DEFAULT_CMD_TIMEOUT_MS  1000
+	int rc = 0;
+	MqttClient client;
+	MqttNet net;
+	byte *tx_buf = NULL, *rx_buf = NULL;
+	tx_buf = malloc(MAX_BUFFER_SIZE);
+	rx_buf = malloc(MAX_BUFFER_SIZE);
+	rc = MqttClient_Init(&client, &net, mqttclient_message_cb,
+		tx_buf, MAX_BUFFER_SIZE, rx_buf, MAX_BUFFER_SIZE,
+		DEFAULT_CMD_TIMEOUT_MS);
+	if (rc != MQTT_CODE_SUCCESS) {
+		printf("MQTT Init: %s (%d)\n", MqttClient_ReturnCodeToString(rc), rc);
+	}
+}
+
 EXPORT INT usermain( void ) {
+	setupMQTT();
+
 	T_CTSK t_ctsk;
 	ID objid;
 	t_ctsk.tskatr = TA_HLNG | TA_DSNAME;
