@@ -75,7 +75,7 @@ ASFLAGS +=
 LDFLAGS +=
 
 ### C  ###
-CC := $(GNUARM_2)/bin/gcc4arm
+CC := $(GNUARM_2)/bin/gcc4arm -std=c99
 OUTPUT_OPTION = -o $@
 ifeq ($(mode), debug)
   CFLAGS += -g
