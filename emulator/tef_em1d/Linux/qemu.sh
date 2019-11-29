@@ -23,7 +23,7 @@
 #   -S                : Wait for gdb connection
 #   -gdb tcp:127.0.0.1:1234
 #
-if [ $4 = "true" ]; then
+if [ "$4" = "true" ]; then
     VNC="-vnc 0.0.0.0:0 -tp xmin=944,xmax=64,ymin=912,ymax=80,xchg=on"
 else
     VNC=""
