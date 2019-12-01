@@ -54,7 +54,7 @@ extern char *sys_errlist[];
 #ifndef errno
 int *__errno(void);
 int *___errno(void);
-//#define	errno (*__errno())
+#define	errno (*__errno())
 #endif /* errno */
 __END_DECLS
 

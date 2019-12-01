@@ -27,16 +27,25 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
+typedef struct {
+    const char* host;
+} MQTTCtx;
+
 LOCAL int mqttclient_message_cb(MqttClient* client, MqttMessage* msg, byte msg_new, byte msg_done) {
 	if (msg_new) {
 		/* Message new */
+		tm_putstring("msg_new");
+		tm_putstring((UB*)msg->buffer);
 	}
 	if (msg_done) {
 		/* Message done */
+		tm_putstring("msg_done");
+		tm_putstring((UB*)msg->buffer);
 	}
 	return MQTT_CODE_SUCCESS;
 	/* Return negative to terminate publish processing */
 }
+
 LOCAL void setupMQTT(void) {
 	#define MAX_BUFFER_SIZE         1024
 	#define DEFAULT_CMD_TIMEOUT_MS  1000
@@ -49,8 +58,14 @@ LOCAL void setupMQTT(void) {
 	rc = MqttClient_Init(&client, &net, mqttclient_message_cb,
 		tx_buf, MAX_BUFFER_SIZE, rx_buf, MAX_BUFFER_SIZE,
 		DEFAULT_CMD_TIMEOUT_MS);
+
+	// mqttCtx->host = myoptarg;
+	// MQTTCtx* context = (MQTTCtx*)client.ctx;
+	// context->host = "test.mosquitto.org";
+	// tm_putstring(client.ctx->host);
+
 	if (rc != MQTT_CODE_SUCCESS) {
-		printf("MQTT Init: %s (%d)\n", MqttClient_ReturnCodeToString(rc), rc);
+		tm_putstring("MQTT Initialization failed");
 	}
 }
 

@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "mqtt_client.h": "c",
-        "settings.h": "c"
+        "settings.h": "c",
+        "cerrno": "c"
     }
 }

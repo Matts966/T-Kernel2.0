@@ -60,47 +60,78 @@ ADD wolf/wolfssl-$WOLFSSL_VERSION.tar.gz /usr/local
 
 # echo "include $BD/lib/libc/src/Makefile.common" >> Makefile && \
 
-# apt-get install -y software-properties-common
-# apt-get install -y python-software-properties
-# add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-# apt-get install -y gcc-arm-none-eabi
-# ./configure \
-    # --host=arm-non-eabi \
-    # CC=arm-none-eabi-gcc \
-    # AR=arm-none-eabi-ar \
-    # STRIP=arm-none-eabi-strip \
-    # RANLIB=arm-none-eabi-ranlib \
-    # --prefix=$BD \
-    # CFLAGS="-mcpu=arm1176jzf-s --specs=nosys.specs \
-    #     -DHAVE_PK_CALLBACKS -DWOLFSSL_USER_IO -DNO_WRITEV" \
-    # --disable-filesystem --enable-fastmath \
-    # --disable-shared
-
+# RUN apt-get install -y software-properties-common
+RUN apt-get install -y python-software-properties
+RUN add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
+RUN apt-get update && apt-get install --force-yes -y gcc-arm-none-eabi
 RUN cd wolfssl-$WOLFSSL_VERSION && \
-    # echo '#define WOLFSSL_uTKERNEL2' > $BD/include/user_settings.h && \
-    ./autogen.sh && ./configure \
-    --host=arm-non-eabi \
-    CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm \
-    AR=$GNU_BD/arm_2-unknown-tkernel/bin/ar \
-    STRIP=$GNU_BD/arm_2-unknown-tkernel/bin/strip \
-    RANLIB=$GNU_BD/arm_2-unknown-tkernel/bin/ranlib \
-    --prefix=$BD \
-    CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp \
-        -mthumb-interwork -static -nostdlib \
-        -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk -I/usr/include" \
-        # -DWOLFSSL_USER_SETTINGS \
-        # -DNO_STDIO_FGETS_REMAP -D_TEF_EM1D_ -I$BD/include -L$BD/lib/build/tef_em1d \
-        # -lgcc -ltk -lsys -ltm -lsvc -lnetwork" \
-    --disable-filesystem \
-    --disable-shared && \
+    ./autogen.sh && ./configure --host=arm-non-eabi \
+        CC=arm-none-eabi-gcc \
+        AR=arm-none-eabi-ar \
+        STRIP=arm-none-eabi-strip \
+        RANLIB=arm-none-eabi-ranlib \
+        --prefix=$BD \
+        CFLAGS="-mcpu=arm1176jzf-s --specs=nosys.specs \
+            -DHAVE_PK_CALLBACKS -DWOLFSSL_USER_IO -DNO_WRITEV" \
+        --disable-filesystem --enable-fastmath \
+        --disable-shared && \
     make && make install
+
+# arm_2-unknown-tkernelでリンク失敗
+# ./configure --prefix=$BD --host=arm-non-eabi         CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm         CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp -mthumb-interwork \
+        # -nostartfiles -static -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk \
+        # -DWOLFSSL_uTKERNEL2 -DNO_STDIO_FGETS_REMAP -DTEF_EM1D -D_T2EX -DNO_WRITEV -DWOLFSSL_USER_IO -I$BD/lib/libc/src_bsd/include -I$BD/lib/libc/src_bsd/include/sysdepend/tef_em1d -I$BD/include -I$BD/include/t2ex" --disable-filesystem &&         make
+
+
+# ./configure --host=arm-non-eabi --disable-examples --disable-tls --prefix=$BD CC=arm-none-eabi-gcc CFLAGS="-mcpu=arm1176jzf-s --specs=nosys.specs" && make && make install
+
+
+# RUN cd wolfssl-$WOLFSSL_VERSION && \
+#     # echo '#define WOLFSSL_uTKERNEL2' > $BD/include/user_settings.h && \
+#     ./autogen.sh && ./configure \
+#     --host=arm-non-eabi \
+#     CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm \
+#     AR=$GNU_BD/arm_2-unknown-tkernel/bin/ar \
+#     STRIP=$GNU_BD/arm_2-unknown-tkernel/bin/strip \
+#     RANLIB=$GNU_BD/arm_2-unknown-tkernel/bin/ranlib \
+#     --prefix=$BD \
+#     CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp \
+#         -mthumb-interwork -static -nostdlib \
+#         -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk -I/usr/include" \
+#         # -DWOLFSSL_USER_SETTINGS \
+#         # -DNO_STDIO_FGETS_REMAP -D_TEF_EM1D_ -I$BD/include -L$BD/lib/build/tef_em1d \
+#         # -lgcc -ltk -lsys -ltm -lsvc -lnetwork" \
+#     --disable-filesystem \
+#     --disable-shared && \
+#     make && make install
 ENV WOLFMQTT_VERSION=1.3.0
 ADD wolf/wolfMQTT-$WOLFMQTT_VERSION.tar.gz $SRC_DIR
+
+# ENTRYPOINT [ "/bin/bash" ]
+
 RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
 # -I/usr/local/srcpkg/tkernel_source/include -I/usr/local/srcpkg/tkernel_source/monitor/include -I../../src -D_TEF_EM1D_
-    ./autogen.sh && ./configure --host=arm-linux-gnueabi --prefix=$BD \
-    libdir=$BD/lib includedir=$BD/include && \
-    make && make install
+    # ./autogen.sh && ./configure --host=arm-non-eabi \
+    #     CC=arm-none-eabi-gcc \
+    #     AR=arm-none-eabi-ar \
+    #     STRIP=arm-none-eabi-strip \
+    #     RANLIB=arm-none-eabi-ranlib \
+    #     CFLAGS="-static -nostdlib -mcpu=arm1176jzf-s --specs=nosys.specs -D__need_wint_t -I/usr/local/include -L/usr/local/lib -lgcc -lc -I$BD/include -L$BD/lib -lwolfssl" \
+    #     --disable-filesystem --disable-shared && \
+    # make && make install
+    ./autogen.sh && ./configure --disable-examples --disable-tls \
+        --prefix=$BD --host=arm-non-eabi \
+        CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm \
+        CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp -mthumb-interwork \
+        -static -nostdlib \
+        -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk \
+        -I$BD/lib/libc/src_bsd/include \
+        -I$BD/lib/libc/src_bsd/include/sysdepend/tef_em1d" && \
+        make && make install
+
+        #define NO_STDIO_FGETS_REMAP
+        #define WOLFSSL_uTKERNEL2
+
 
 # RUN ln -s /usr/local/wolfssl-4.2.0c/wolfssl /usr/local/srcpkg/tkernel_source/include/wolfssl && \
 #     ln -s /usr/local/wolfMQTT-1.3.0/wolfmqtt /usr/local/srcpkg/tkernel_source/include/wolfmqtt && \
