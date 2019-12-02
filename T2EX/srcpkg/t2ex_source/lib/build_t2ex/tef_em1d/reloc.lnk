@@ -48,7 +48,7 @@
  *	linker script for relocatable modules
  */
 
-OUTPUT_FORMAT("elf32-larm-tkernel", "elf32-barm-tkernel", "elf32-larm-tkernel")
+OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 
 FORCE_COMMON_ALLOCATION
@@ -73,6 +73,8 @@ SECTIONS {
 		*(.rodata.*)
 		*(.rodata1)
 	} =0
+	__ARM_exidx = .;
+	.ARM.exidx : { *(.ARM.exidx*) }
 	. = ALIGN(0x1000);
 	/* __data_org should be defined here semantically, but in order for
 	 * the operating system to load symbols, it needs to reside in

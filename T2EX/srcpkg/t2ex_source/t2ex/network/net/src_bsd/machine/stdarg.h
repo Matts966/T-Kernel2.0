@@ -47,7 +47,7 @@ typedef _BSD_VA_LIST_	va_list;
 #endif
 
 #if __GNUC_PREREQ__(2, 96)
-#define	va_start(ap, last)	__builtin_stdarg_start((ap), (last))
+#define	va_start(ap, last)	__builtin_va_start((ap), (last))
 #define	va_arg			__builtin_va_arg
 #define	va_end			__builtin_va_end
 #define	__va_copy(dest, src)	__builtin_va_copy((dest), (src))

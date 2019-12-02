@@ -49,7 +49,7 @@
  *	linker script (ROM, with T2EX memory protection)
  */
 
-OUTPUT_FORMAT("elf32-larm-tkernel", "elf32-barm-tkernel", "elf32-larm-tkernel")
+OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
 
@@ -101,6 +101,8 @@ SECTIONS {
 		PROVIDE (_erodata_usr = .);
 		PROVIDE (erodata_usr = .);
 	} =0
+	__ARM_exidx = .;
+	.ARM.exidx : { *(.ARM.exidx*) }
 	__data_org = ALIGN(4);
 	.data 0x30006000 : AT(__data_org) {
 		__data_start = . ;
