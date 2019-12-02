@@ -29,10 +29,10 @@ else
     VNC=""
 fi
 
-./qemu-tef_em1d \
+$QEMU_BIN_DIR/qemu-tef_em1d \
 -cpu arm1176jzf-s \
--kernel ${1:-/usr/local/srcpkg/tool/qemu/bin/rom.bin} \
--sd ${2:-/usr/local/srcpkg/tool/qemu/bin/sd.img} \
+-kernel ${1:-$QEMU_BIN_DIR/rom.bin} \
+-sd ${2:-$QEMU_BIN_DIR/sd.img} \
 -rtc base=localtime \
 -serial tcp:0.0.0.0:${3:-10000},server $VNC \
 # -net user \
