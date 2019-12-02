@@ -178,9 +178,6 @@ ifdef  T2EX
 
 endif
 
-# mqtt
-LDUSRLIBS += -L$(BD)/lib -lwolfmqtt
-
 # gcc standard library
 STDLIB = -lgcc
 

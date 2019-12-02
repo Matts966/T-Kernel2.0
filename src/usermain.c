@@ -1,7 +1,7 @@
 #include <tk/tkernel.h>
 #include <tm/tmonitor.h>
 #include <libstr.h>
-#include "wolfmqtt/mqtt_client.h"
+// #include "wolfmqtt/mqtt_client.h"
 
 typedef enum { TASK_A, TASK_B, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
@@ -27,50 +27,50 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
-typedef struct {
-    const char* host;
-} MQTTCtx;
+// typedef struct {
+//     const char* host;
+// } MQTTCtx;
 
-LOCAL int mqttclient_message_cb(MqttClient* client, MqttMessage* msg, byte msg_new, byte msg_done) {
-	if (msg_new) {
-		/* Message new */
-		tm_putstring("msg_new");
-		tm_putstring((UB*)msg->buffer);
-	}
-	if (msg_done) {
-		/* Message done */
-		tm_putstring("msg_done");
-		tm_putstring((UB*)msg->buffer);
-	}
-	return MQTT_CODE_SUCCESS;
-	/* Return negative to terminate publish processing */
-}
+// LOCAL int mqttclient_message_cb(MqttClient* client, MqttMessage* msg, byte msg_new, byte msg_done) {
+// 	if (msg_new) {
+// 		/* Message new */
+// 		tm_putstring("msg_new");
+// 		tm_putstring((UB*)msg->buffer);
+// 	}
+// 	if (msg_done) {
+// 		/* Message done */
+// 		tm_putstring("msg_done");
+// 		tm_putstring((UB*)msg->buffer);
+// 	}
+// 	return MQTT_CODE_SUCCESS;
+// 	/* Return negative to terminate publish processing */
+// }
 
-LOCAL void setupMQTT(void) {
-	#define MAX_BUFFER_SIZE         1024
-	#define DEFAULT_CMD_TIMEOUT_MS  1000
-	int rc = 0;
-	MqttClient client;
-	MqttNet net;
-	byte *tx_buf = NULL, *rx_buf = NULL;
-	tx_buf = malloc(MAX_BUFFER_SIZE);
-	rx_buf = malloc(MAX_BUFFER_SIZE);
-	rc = MqttClient_Init(&client, &net, mqttclient_message_cb,
-		tx_buf, MAX_BUFFER_SIZE, rx_buf, MAX_BUFFER_SIZE,
-		DEFAULT_CMD_TIMEOUT_MS);
+// LOCAL void setupMQTT(void) {
+// 	#define MAX_BUFFER_SIZE         1024
+// 	#define DEFAULT_CMD_TIMEOUT_MS  1000
+// 	int rc = 0;
+// 	MqttClient client;
+// 	MqttNet net;
+// 	byte *tx_buf = NULL, *rx_buf = NULL;
+// 	tx_buf = malloc(MAX_BUFFER_SIZE);
+// 	rx_buf = malloc(MAX_BUFFER_SIZE);
+// 	rc = MqttClient_Init(&client, &net, mqttclient_message_cb,
+// 		tx_buf, MAX_BUFFER_SIZE, rx_buf, MAX_BUFFER_SIZE,
+// 		DEFAULT_CMD_TIMEOUT_MS);
 
-	// mqttCtx->host = myoptarg;
-	// MQTTCtx* context = (MQTTCtx*)client.ctx;
-	// context->host = "test.mosquitto.org";
-	// tm_putstring(client.ctx->host);
+// 	// mqttCtx->host = myoptarg;
+// 	// MQTTCtx* context = (MQTTCtx*)client.ctx;
+// 	// context->host = "test.mosquitto.org";
+// 	// tm_putstring(client.ctx->host);
 
-	if (rc != MQTT_CODE_SUCCESS) {
-		tm_putstring("MQTT Initialization failed");
-	}
-}
+// 	if (rc != MQTT_CODE_SUCCESS) {
+// 		tm_putstring("MQTT Initialization failed");
+// 	}
+// }
 
 EXPORT INT usermain( void ) {
-	setupMQTT();
+	// setupMQTT();
 
 	T_CTSK t_ctsk;
 	ID objid;

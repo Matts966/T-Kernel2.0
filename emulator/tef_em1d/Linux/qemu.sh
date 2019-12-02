@@ -33,7 +33,7 @@ fi
 -cpu arm1176jzf-s \
 -kernel ${1:-/usr/local/srcpkg/tool/qemu/bin/rom.bin} \
 -sd ${2:-/usr/local/srcpkg/tool/qemu/bin/sd.img} \
--rtc base=localtime \
+-rtc base=localtime -dipsw dbgsw=on \
 -serial tcp:0.0.0.0:${3:-10000},server $VNC \
 # -net user \
 $5 $6 $7 $8

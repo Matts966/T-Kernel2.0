@@ -15,6 +15,6 @@ PORT=$(EPHEMERAL_PORT)
 VNC=$1
 ROM=${2:-/usr/local/srcpkg/tool/qemu/bin/rom.bin}
 echo "ROM size: $(wc -c $ROM)"
-./qemu.sh $ROM sd.img $PORT $VNC > /dev/null &
+./qemu.sh $ROM sd.img $PORT $VNC & # > /dev/null &
 sleep 3
 /usr/local/srcpkg/tool/Linux-i686/etc/gterm -l localhost:$PORT
