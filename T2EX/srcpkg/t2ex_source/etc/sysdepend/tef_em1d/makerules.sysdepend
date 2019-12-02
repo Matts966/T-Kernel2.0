@@ -12,82 +12,68 @@
 #
 # ----------------------------------------------------------------------
 #
+#     Modified by T.Yokobayashi at 2016/03/02.
+#
+# ----------------------------------------------------------------------
+#
 
 #
-# This software package is available for use, modification, 
-# and redistribution in accordance with the terms of the attached 
+# This software package is available for use, modification,
+# and redistribution in accordance with the terms of the attached
 # T-License 2.x.
-# If you want to redistribute the source code, you need to attach 
+# If you want to redistribute the source code, you need to attach
 # the T-License 2.x document.
-# There's no obligation to publish the content, and no obligation 
-# to disclose it to the TRON Forum if you have modified the 
+# There's no obligation to publish the content, and no obligation
+# to disclose it to the TRON Forum if you have modified the
 # software package.
-# You can also distribute the modified source code. In this case, 
+# You can also distribute the modified source code. In this case,
 # please register the modification to T-Kernel traceability service.
-# People can know the history of modifications by the service, 
-# and can be sure that the version you have inherited some 
+# People can know the history of modifications by the service,
+# and can be sure that the version you have inherited some
 # modification of a particular version or not.
 #
 #    http://trace.tron.org/tk/?lang=en
 #    http://trace.tron.org/tk/?lang=ja
 #
-# As per the provisions of the T-License 2.x, TRON Forum ensures that 
-# the portion of the software that is copyrighted by Ken Sakamura or 
+# As per the provisions of the T-License 2.x, TRON Forum ensures that
+# the portion of the software that is copyrighted by Ken Sakamura or
 # the TRON Forum does not infringe the copyrights of a third party.
 # However, it does not make any warranty other than this.
 # DISCLAIMER: TRON Forum and Ken Sakamura shall not be held
 # responsible for any consequences or damages caused directly or
 # indirectly by the use of this software package.
 #
-# The source codes in bsd_source.tar.gz in this software package are 
+# The source codes in bsd_source.tar.gz in this software package are
 # derived from NetBSD or OpenBSD and not covered under T-License 2.x.
-# They need to be changed or redistributed according to the 
+# They need to be changed or redistributed according to the
 # representation of each source header.
-#
-
-#
-#	makerules
-#		for GNU make
-#
-#	default rules - system-dependent (EM1-D512)
-#
-#	MACHINE	target CPU
-#		em1d	: EM1-D512
-#
-#	TETYPE	target T-Engine type
-#		tef	: T-Engine Forum Reference Board
-#
-#	GNUARM_2	GNU development tool for ARM
-#
 
 # check environmental variables
 ifndef GNU_BD
   $(error 'GNU_BD' is not defined)
 endif
-ifndef GNUARM_2
-  ifndef GNUarm_2
-    $(error 'GNUARM_2' is not defined)
-  endif
-  # for compatibitily
-  GNUARM_2 = $(GNUarm_2)
+ifndef _GNU_CONFIG
+  # _GNU_CONFIG指定がない時のデフォルト
+  _GNU_CONFIG = arm-none-eabi-
 endif
 
 # command path
 PATH = .
-ifneq ($(filter "$(origin GNUARM_2)", $(TOOL_ORIGIN)), )
-  PATH := $(PATH):$(GNUARM_2)/bin
-endif
 ifneq ($(filter "$(origin GNUs)", $(TOOL_ORIGIN)), )
   PATH := $(PATH):$(GNUs)/bin
 endif
 ifneq ($(filter Linux-%, $(CROSS_ARCH)), )
   PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
 endif
+ifneq ($(filter Darwin-%, $(CROSS_ARCH)), )
+  PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
+endif
 ifneq ($(filter Cygwin-%, $(CROSS_ARCH)), )
   PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
 endif
-
-# ----- T-Engine Reference Board (EM1-D512) ----------------------------
+ifneq ($(filter mingw32-%, $(CROSS_ARCH)), )
+  PATH := $(PATH):/mingw32/bin:/usr/bin
+endif
 
 # GCC environment
 TARGET_ARCH =
@@ -107,7 +93,7 @@ ASFLAGS +=
 LDFLAGS +=
 
 ### C  ###
-CC := $(GNUARM_2)/bin/gcc4arm -std=c99
+CC := $(BD)/etc/gcc4arm -std=gnu11
 OUTPUT_OPTION = -o $@
 ifeq ($(mode), debug)
   CFLAGS += -g
@@ -138,7 +124,7 @@ LINK.c = $(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 	$(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### C++ ###
-CXX := $(GNUARM_2)/bin/gcc4arm
+CXX := $(BD)/etc/gcc4arm
 CXXFLAGS = $(CFLAGS)
 
 COMPILE.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -c
@@ -157,9 +143,9 @@ LINK.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 	$(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### asm ###
-AS = $(GNUARM_2)/bin/as
+AS = "$(GNU_BD)/bin/$(_GNU_CONFIG)as"
 ifeq ($(mode), debug)
-  ASFLAGS += -g
+  ASFLAGS += -g -g2
 else
   ASFLAGS +=
 endif
@@ -186,7 +172,7 @@ COMPILE.s = $(AS) $(ASFLAGS.s)
 	$(CC) $(TARGET_ARCH) $(ASFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### linker ###
-LD = $(GNUARM_2)/bin/ld
+LD = "$(GNU_BD)/bin/$(_GNU_CONFIG)ld"
 ifeq ($(mode), debug)
   LDFLAGS += $(LIBDIR:%=-L%)
 else
@@ -234,15 +220,15 @@ LOCATE.o = $(CC) $(TARGET_ARCH) $(LDFLAGS) -nostdlib $(LDFLAGS3) $(START_ADR)
 	$(RM) _$@
 
 ### library ###
-AR = $(GNUARM_2)/bin/ar
+AR = "$(GNU_BD)/bin/$(_GNU_CONFIG)ar"
 ARFLAGS = rv
-RANLIB = $(GNUARM_2)/bin/ranlib
+RANLIB = "$(GNU_BD)/bin/$(_GNU_CONFIG)ranlib"
 
 (%): %
 	$(AR) $(ARFLAGS) $@ $%
 
 ### create name list ###
-NM = $(GNUARM_2)/bin/nm
+NM = "$(GNU_BD)/bin/$(_GNU_CONFIG)nm"
 NMFLAGS = -n
 
 %.map: %
@@ -282,9 +268,9 @@ DATABOX = $(DB) $(DBFLAGS)
 
 ### other ###
 ifndef CPP
-  CPP = $(GNU_BD)/bin/arm_2-unknown-tkernel-cpp
+  CPP = "$(GNU_BD)/bin/$(_GNU_CONFIG)cpp"
 endif
-STRIP = $(GNUARM_2)/bin/strip --strip-unneeded
+STRIP = "$(GNU_BD)/bin/$(_GNU_CONFIG)strip --strip-unneeded"
 
-OBJCOPY = $(GNU_BD)/bin/arm_2-unknown-tkernel-objcopy
+OBJCOPY = "$(GNU_BD)/bin/$(_GNU_CONFIG)objcopy"
 OUTPUT_SREC = -O srec --srec-forceS3 --srec-len 32

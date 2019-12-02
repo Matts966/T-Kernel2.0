@@ -1,14 +1,14 @@
 #
 # ----------------------------------------------------------------------
-#     T-Kernel 2.0 Software Package
+#    T2EX Software Package
 #
-#     Copyright 2011 by Ken Sakamura.
-#     This software is distributed under the latest version of T-License 2.x.
+#    Copyright 2012 by Ken Sakamura.
+#    This software is distributed under the latest version of T-License 2.x.
 # ----------------------------------------------------------------------
 #
-#     Released by T-Engine Forum(http://www.t-engine.org/) at 2011/05/17.
-#     Modified by T-Engine Forum at 2012/11/07.
-#     Modified by TRON Forum(http://www.tron.org/) at 2015/06/01.
+#    Released by T-Engine Forum(http://www.t-engine.org/) at 2012/12/12.
+#    Modified by T-Engine Forum at 2013/01/16.
+#    Modified by TRON Forum(http://www.tron.org/) at 2015/06/04.
 #
 # ----------------------------------------------------------------------
 #
@@ -32,30 +32,28 @@
 ifndef GNU_BD
   $(error 'GNU_BD' is not defined)
 endif
-ifndef GNUARM_2
-  ifndef GNUarm_2
-    $(error 'GNUARM_2' is not defined)
-  endif
-  # for compatibitily
-  GNUARM_2 = $(GNUarm_2)
+ifndef _GNU_CONFIG
+  # _GNU_CONFIG指定がない時のデフォルト
+  _GNU_CONFIG = arm-none-eabi-
 endif
 
 # command path
 PATH = .
-ifneq ($(filter "$(origin GNUARM_2)", $(TOOL_ORIGIN)), )
-  PATH := $(PATH):$(GNUARM_2)/bin
-endif
 ifneq ($(filter "$(origin GNUs)", $(TOOL_ORIGIN)), )
   PATH := $(PATH):$(GNUs)/bin
 endif
 ifneq ($(filter Linux-%, $(CROSS_ARCH)), )
   PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
 endif
+ifneq ($(filter Darwin-%, $(CROSS_ARCH)), )
+  PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
+endif
 ifneq ($(filter Cygwin-%, $(CROSS_ARCH)), )
   PATH := $(PATH):/usr/local/bin:/bin:/usr/bin
 endif
-
-# ----- T-Engine Reference Board (EM1-D512) ----------------------------
+ifneq ($(filter mingw32-%, $(CROSS_ARCH)), )
+  PATH := $(PATH):/mingw32/bin:/usr/bin
+endif
 
 # GCC environment
 TARGET_ARCH =
@@ -75,7 +73,7 @@ ASFLAGS +=
 LDFLAGS +=
 
 ### C  ###
-CC := $(GNUARM_2)/bin/gcc4arm -std=c99
+CC := $(BD)/etc/gcc4arm -std=gnu11
 OUTPUT_OPTION = -o $@
 ifeq ($(mode), debug)
   CFLAGS += -g
@@ -96,6 +94,9 @@ LINK.c = $(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 %.o: %.c
 	$(COMPILE.c) $< $(OUTPUT_OPTION)
 
+%.uo: %.c
+	$(COMPILE.c) $< $(OUTPUT_OPTION) -MT $@
+
 %.s: %.c
 	$(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) -S $<
 
@@ -103,7 +104,7 @@ LINK.c = $(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 	$(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### C++ ###
-CXX := $(GNUARM_2)/bin/gcc4arm
+CXX := $(BD)/etc/gcc4arm
 CXXFLAGS = $(CFLAGS)
 
 COMPILE.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -c
@@ -112,6 +113,9 @@ LINK.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 %.o: %.cc
 	$(COMPILE.cc) $< $(OUTPUT_OPTION)
 
+%.uo: %.cc
+	$(COMPILE.cc) $< $(OUTPUT_OPTION) -MT $@
+
 %.s: %.cc
 	$(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -S $<
 
@@ -119,9 +123,9 @@ LINK.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS)
 	$(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### asm ###
-AS = $(GNUARM_2)/bin/as
+AS = "$(GNU_BD)/bin/$(_GNU_CONFIG)as"
 ifeq ($(mode), debug)
-  ASFLAGS += -g
+  ASFLAGS += -g -g2
 else
   ASFLAGS +=
 endif
@@ -135,14 +139,20 @@ COMPILE.s = $(AS) $(ASFLAGS.s)
 %.o: %.S
 	$(COMPILE.S) $< $(OUTPUT_OPTION)
 
+%.uo: %.S
+	$(COMPILE.S) $< $(OUTPUT_OPTION) -MT $@
+
 %.o: %.s
 	$(COMPILE.s) $< $(OUTPUT_OPTION)
+
+%.uo: %.s
+	$(COMPILE.S) $< $(OUTPUT_OPTION)
 
 %.i: %.S
 	$(CC) $(TARGET_ARCH) $(ASFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### linker ###
-LD = $(GNUARM_2)/bin/ld
+LD = "$(GNU_BD)/bin/$(_GNU_CONFIG)ld"
 ifeq ($(mode), debug)
   LDFLAGS += $(LIBDIR:%=-L%)
 else
@@ -190,15 +200,15 @@ LOCATE.o = $(CC) $(TARGET_ARCH) $(LDFLAGS) -nostdlib $(LDFLAGS3) $(START_ADR)
 	$(RM) _$@
 
 ### library ###
-AR = $(GNUARM_2)/bin/ar
+AR = "$(GNU_BD)/bin/$(_GNU_CONFIG)ar"
 ARFLAGS = rv
-RANLIB = $(GNUARM_2)/bin/ranlib
+RANLIB = "$(GNU_BD)/bin/$(_GNU_CONFIG)ranlib"
 
 (%): %
 	$(AR) $(ARFLAGS) $@ $%
 
 ### create name list ###
-NM = $(GNUARM_2)/bin/nm
+NM = "$(GNU_BD)/bin/$(_GNU_CONFIG)nm"
 NMFLAGS = -n
 
 %.map: %
@@ -238,9 +248,9 @@ DATABOX = $(DB) $(DBFLAGS)
 
 ### other ###
 ifndef CPP
-  CPP = $(GNU_BD)/bin/arm_2-unknown-tkernel-cpp
+  CPP = "$(GNU_BD)/bin/$(_GNU_CONFIG)cpp"
 endif
-STRIP = $(GNUARM_2)/bin/strip --strip-unneeded
+STRIP = "$(GNU_BD)/bin/$(_GNU_CONFIG)strip --strip-unneeded"
 
-OBJCOPY = $(GNU_BD)/bin/arm_2-unknown-tkernel-objcopy
+OBJCOPY = "$(GNU_BD)/bin/$(_GNU_CONFIG)objcopy"
 OUTPUT_SREC = -O srec --srec-forceS3 --srec-len 32
