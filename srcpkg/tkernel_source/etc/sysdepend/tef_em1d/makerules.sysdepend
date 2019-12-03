@@ -59,7 +59,7 @@ endif
 TARGET_ARCH =
 
 # target type
-_CPUTYPE_FLAGS    = -mcpu=arm1176jzf-s -msoft-float -mfpu=vfp
+_CPUTYPE_FLAGS    = -mcpu=arm926ej-s -msoft-float -mfpu=vfp
 _CPUTYPE_FLAGS_AS = -mcpu=arm1176jzf-s -mfpu=softvfp
 _TE_SYSTEM_NAME_ = _TEF_EM1D_
 

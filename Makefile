@@ -1,5 +1,5 @@
 run: build
-	docker run --rm -it qt
+	docker run --privileged=true --rm -it qt
 run-net-host: build
 	docker run --rm -it --net=host qt
 run-with-vnc: build
