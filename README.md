@@ -1,4 +1,5 @@
 # T-Kernel2.0
+[![github-action](https://github.com/Matts966/T-Kernel2.0/workflows/Docker%20Image%20CI/badge.svg)](https://github.com/Matts966/T-Kernel2.0/actions)
 
 ## Quick Start
 
