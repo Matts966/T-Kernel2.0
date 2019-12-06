@@ -1051,24 +1051,22 @@ int MqttClientNet_Init(MqttNet* net, MQTTCtx* mqttCtx)
     }
 #endif /* MICROCHIP_MPLAB_HARMONY */
 
-    if (net) {
-        SocketContext* sockCtx;
+    SocketContext* sockCtx;
 
-        XMEMSET(net, 0, sizeof(MqttNet));
-        net->connect = NetConnect;
-        net->read = NetRead;
-        net->write = NetWrite;
-        net->disconnect = NetDisconnect;
+    XMEMSET(net, 0, sizeof(MqttNet));
+    net->connect = NetConnect;
+    net->read = NetRead;
+    net->write = NetWrite;
+    net->disconnect = NetDisconnect;
 
-        sockCtx = (SocketContext*)WOLFMQTT_MALLOC(sizeof(SocketContext));
-        if (sockCtx == NULL) {
-            return MQTT_CODE_ERROR_MEMORY;
-        }
-        net->context = sockCtx;
-        XMEMSET(sockCtx, 0, sizeof(SocketContext));
-        sockCtx->stat = SOCK_BEGIN;
-        sockCtx->mqttCtx = mqttCtx;
+    sockCtx = (SocketContext*)WOLFMQTT_MALLOC(sizeof(SocketContext));
+    if (sockCtx == NULL) {
+        return MQTT_CODE_ERROR_MEMORY;
     }
+    net->context = sockCtx;
+    XMEMSET(sockCtx, 0, sizeof(SocketContext));
+    sockCtx->stat = SOCK_BEGIN;
+    sockCtx->mqttCtx = mqttCtx;
 
     return MQTT_CODE_SUCCESS;
 }
