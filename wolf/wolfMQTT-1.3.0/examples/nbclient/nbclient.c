@@ -105,7 +105,6 @@ static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
 
 int mqttclient_test(MQTTCtx *mqttCtx)
 {
-    PRINTF("Started mqttclient_test.");
     int rc = MQTT_CODE_SUCCESS, i;
 
     switch (mqttCtx->stat) {
@@ -462,7 +461,7 @@ exit:
 
 
 /* so overall tests can pull in test function */
-#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY) && FALSE
+#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY) && !defined(TKERNEL)
     #ifdef USE_WINDOWS_API
         #include <windows.h> /* for ctrl handler */
 
@@ -537,4 +536,3 @@ exit:
     }
 
 #endif /* NO_MAIN_DRIVER */
-

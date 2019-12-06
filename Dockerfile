@@ -8,7 +8,8 @@ ENV QEMU_BIN_DIR=/usr/local/srcpkg/tool/qemu/bin
 COPY emulator/tef_em1d/Image/* $QEMU_BIN_DIR/
 ADD emulator/tef_em1d/build/qemu-0.12.4-tef_em1d.tar.gz /usr/local/srcpkg/tool/qemu/
 WORKDIR /usr/local/srcpkg/tool/qemu/qemu-0.12.4-tef_em1d
-RUN ./configure --target-list=arm-softmmu --disable-blobs --prefix=/usr/local/srcpkg/tool/qemu
+RUN ./configure --target-list=arm-softmmu --disable-blobs \
+    --prefix=/usr/local/srcpkg/tool/qemu
 RUN make install
 RUN mv $QEMU_BIN_DIR/qemu-system-arm $QEMU_BIN_DIR/qemu-tef_em1d
 ADD develop/te.Linux-i686.common.15.tar.gz /usr/local/srcpkg/
@@ -33,13 +34,12 @@ ENV BD=/usr/local/srcpkg/tkernel_source
 # Use this working directory instead of below if extension is not needed.
 # WORKDIR /usr/local/srcpkg/tkernel_source/kernel/sysmain/build/srcpkg
 WORKDIR $BD/kernel/sysmain/build_t2ex/tef_em1d
-RUN CC="$GNUARM_2/bin/gcc4arm -std=gnu11" make req
+RUN make req
 
 # Install wolfMQTT
 ENV WOLFMQTT_VERSION=1.3.0
 COPY wolf/wolfMQTT-$WOLFMQTT_VERSION /usr/local/wolfMQTT-$WOLFMQTT_VERSION
 WORKDIR /usr/local
-# ENTRYPOINT [ "/bin/bash" ]
 
 RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
     ./autogen.sh && ./configure --disable-tls --enable-nonblock \
@@ -47,9 +47,8 @@ RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
         CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm \
         CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp -mthumb-interwork \
         -static -nostdlib -D_T2EX=1 -DT2EX=1 -DT2EX_MM -DT2EX_NO_MD5 \
-        -D_TEF_EM1D_ -DINET -DGATEWAY=1 -DTKERNEL_CHECK_CONST \
-        -DNBPFILTER=3 -DNTUN=0 -DNDEBUG -Duse_libstr_func_as_std=1 \
-        -DTEF_EM1D=1 -DTKERNEL -D_KERNEL -DNO_EXIT \
+        -D_TEF_EM1D_ -DTEF_EM1D=1 -DINET -DGATEWAY=1 -DTKERNEL_CHECK_CONST \
+        -DNBPFILTER=3 -DNTUN=0 -DNDEBUG -DTKERNEL -D_KERNEL \
         -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk \
         -I$BD/include/sys/sysdepend/tef_em1d \
         -I$BD/t2ex/network/net/src_bsdlib/libc/include \

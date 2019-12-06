@@ -169,7 +169,7 @@
     #define SOCK_SETSOCKOPT setsockopt
 #endif
 #ifndef SOCK_GETSOCKOPT
-    #define SOCK_SETSOCKOPT getsockopt
+    #define SOCK_GETSOCKOPT getsockopt
 #endif
 #ifndef SOCK_SELECT
     #define SOCK_SELECT select

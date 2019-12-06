@@ -5,7 +5,7 @@
 #include "examples/mqttnet.h"
 #include "examples/nbclient/nbclient.h"
 
-typedef enum { TASK_A, TASK_B, OBJ_KIND_NUM } OBJ_KIND;
+typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
 
 EXPORT void task_a(INT stacd, VP exinf);
@@ -29,23 +29,25 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
-LOCAL void runMQTT(void) {
+EXPORT void task_mqtt(INT stacd, VP exinf) {
 	MQTTCtx mqttCtx;
 	mqtt_init_ctx(&mqttCtx);
 	mqttCtx.app_name = "nbclient";
 	mqttCtx.host = "test.mosquitto.org";
 	mqttCtx.port = (word16)XATOI("1883");
+	mqttCtx.cmd_timeout_ms = XATOI("1000");
+	mqttCtx.qos = (MqttQoS)((byte)XATOI("0"));
+	mqttCtx.test_mode = 1;
 	int rc;
 	tm_putstring("runMQTT\n");
 	do {
 		tm_putstring("mqttclient_test\n");
 		rc = mqttclient_test(&mqttCtx);
 	} while (rc == MQTT_CODE_CONTINUE);
+	tk_ext_tsk();
 }
 
 EXPORT INT usermain( void ) {
-	runMQTT();
-
 	T_CTSK t_ctsk;
 	ID objid;
 	t_ctsk.tskatr = TA_HLNG | TA_DSNAME;
@@ -60,6 +62,7 @@ EXPORT INT usermain( void ) {
 	}
 	ObjID[TASK_A] = objid;
 	tm_putstring("*** task_a created.\n");
+
 	t_ctsk.itskpri = 2;
 	t_ctsk.stksz = 1024;
 	STRCPY( (char *)t_ctsk.dsname, "task_b");
@@ -75,10 +78,26 @@ EXPORT INT usermain( void ) {
 		return 1;
 	}
 	tm_putstring("*** task_b started.\n");
+
+	t_ctsk.itskpri = 1;
+	t_ctsk.stksz = 1024;
+	STRCPY( (char *)t_ctsk.dsname, "task_mqtt");
+	t_ctsk.task = task_mqtt;
+	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
+		tm_putstring(" *** Failed in the creation of task_mqtt.\n");
+		return 1;
+	}
+	ObjID[TASK_MQTT] = objid;
+	tm_putstring("*** task_mqtt created.\n");
+
 	while ( 1 ) {
-		tm_putstring((UB*)"Push any key to start task_a. ");
-		tm_getchar(-1);
+		tm_putstring((UB*)"Push a to start task_a, m to start task_mqtt. ");
+		char c = tm_getchar(-1);
 		tm_putstring("\n");
-		tk_sta_tsk( ObjID[TASK_A], 0 );
+		if (c == 'a') {
+			tk_sta_tsk( ObjID[TASK_A], 0 );
+		} else if (c == 'm') {
+			tk_sta_tsk( ObjID[TASK_MQTT], 0 );
+		}
 	}
 }
