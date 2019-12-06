@@ -1,6 +1,8 @@
 FROM ubuntu:12.04
 RUN echo "foreign-architecture i386" > /etc/dpkg/dpkg.cfg.d/multiarch
-RUN apt-get update && apt-get install -y make libc6:i386 libncurses5:i386 libstdc++6:i386 libbluetooth3:i386 libz1:i386 zlib1g-dev
+RUN apt-get update && apt-get install -y make libc6:i386 libncurses5:i386 \
+    libstdc++6:i386 libbluetooth3:i386 libz1:i386 zlib1g-dev autoconf \
+    automake libtool
 RUN mkdir -p /usr/local/srcpkg/tool/qemu/bin
 ENV QEMU_BIN_DIR=/usr/local/srcpkg/tool/qemu/bin
 COPY emulator/tef_em1d/Image/* $QEMU_BIN_DIR/
@@ -34,26 +36,6 @@ WORKDIR $BD/kernel/sysmain/build_t2ex/tef_em1d
 RUN CC="$GNUARM_2/bin/gcc4arm -std=c99" make req
 
 # Install wolfMQTT
-WORKDIR /usr/local
-RUN apt-get update && apt-get install -y autoconf automake libtool
-ENV WOLFSSL_VERSION=4.2.0c
-ADD wolf/wolfssl-$WOLFSSL_VERSION.tar.gz /usr/local
-RUN apt-get install -y python-software-properties
-RUN add-apt-repository -y ppa:terry.guo/gcc-arm-embedded
-RUN apt-get update && apt-get install --force-yes -y gcc-arm-none-eabi
-RUN cd wolfssl-$WOLFSSL_VERSION && \
-    ./autogen.sh && ./configure --host=arm-non-eabi \
-        CC=arm-none-eabi-gcc \
-        AR=arm-none-eabi-ar \
-        STRIP=arm-none-eabi-strip \
-        RANLIB=arm-none-eabi-ranlib \
-        --prefix=$BD \
-        CFLAGS="-mcpu=arm1176jzf-s --specs=nosys.specs \
-            -DHAVE_PK_CALLBACKS -DWOLFSSL_USER_IO -DNO_WRITEV" \
-        --disable-filesystem --enable-fastmath \
-        --disable-shared && \
-    make && make install
-
 ENV WOLFMQTT_VERSION=1.3.0
 ADD wolf/wolfMQTT-$WOLFMQTT_VERSION.tar.gz $SRC_DIR
 RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
