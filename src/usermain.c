@@ -43,6 +43,9 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 	do {
 		tm_putstring("mqttclient_test\n");
 		rc = mqttclient_test(&mqttCtx);
+		tm_putprintf("client: %d, net: %d, connect: %d",
+			&mqttCtx.client == NULL, (&mqttCtx.client)->net == NULL,
+			(&mqttCtx.client)->net->connect == NULL)
 	} while (rc == MQTT_CODE_CONTINUE);
 	tk_ext_tsk();
 }
