@@ -605,7 +605,6 @@ static int NetConnect(void *context, const char* host, word16 port,
             sock->addr.sin_family = AF_INET;
 
         #ifdef TKERNEL
-            struct in_addr addr;
             char* buf;
             int size;
             size = so_getaddrinfo(host, NULL, &hints, &result, NULL, 0, NULL);
