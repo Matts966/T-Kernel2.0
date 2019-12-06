@@ -2,6 +2,8 @@
 #include <tm/tmonitor.h>
 #include <libstr.h>
 #include "wolfmqtt/mqtt_client.h"
+#include "examples/mqttnet.h"
+#include "examples/nbclient/nbclient.h"
 
 typedef enum { TASK_A, TASK_B, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
@@ -27,82 +29,22 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
-typedef struct {
-    const char* host;
-} MQTTCtx;
-
-LOCAL int mqttclient_message_cb(MqttClient* client, MqttMessage* msg, byte msg_new, byte msg_done) {
-	if (msg_new) {
-		/* Message new */
-		tm_putstring("msg_new");
-		tm_putstring((UB*)msg->buffer);
-	}
-	if (msg_done) {
-		/* Message done */
-		tm_putstring("msg_done");
-		tm_putstring((UB*)msg->buffer);
-	}
-	return MQTT_CODE_SUCCESS;
-	/* Return negative to terminate publish processing */
-}
-
-LOCAL int mqtt_connect_cb(void *context, const char* host, word16 port, int timeout_ms) {
-	tm_printf("connected to %s\n", host);
-	return MQTT_CODE_SUCCESS;
-}
-LOCAL int mqtt_write_cb(void *context, const byte* buf, int buf_len, int timeout_ms) {
-	tm_printf("wrote %s\n", buf);
-	return MQTT_CODE_SUCCESS;
-}
-LOCAL int mqtt_read_cb(void *context, byte* buf, int buf_len, int timeout_ms) {
-	tm_printf("read %s\n", buf);
-	return MQTT_CODE_SUCCESS;
-}
-LOCAL int mqtt_disconnect_cb(void *context) {
-	tm_putstring("disconnected\n");
-	return MQTT_CODE_SUCCESS;
-}
-LOCAL void check_rc(int rc, char* context) {
-	if (rc != MQTT_CODE_SUCCESS) {
-		tm_printf("MQTT %s failed\n", context);
-		tm_printf("Cause: %s\n", MqttClient_ReturnCodeToString(rc));
-	}
-}
-LOCAL void setupMQTT(void) {
-	#define MAX_BUFFER_SIZE         1024
-	#define DEFAULT_CMD_TIMEOUT_MS  1000
-	int rc = 0;
-	MqttClient client;
-	MqttNet net;
-	net.connect = mqtt_connect_cb;
-	net.disconnect = mqtt_disconnect_cb;
-	net.read = mqtt_read_cb;
-	net.write = mqtt_write_cb;
-	byte *tx_buf = NULL, *rx_buf = NULL;
-	tx_buf = malloc(MAX_BUFFER_SIZE);
-	rx_buf = malloc(MAX_BUFFER_SIZE);
-	rc = MqttClient_Init(&client, &net, mqttclient_message_cb,
-		tx_buf, MAX_BUFFER_SIZE, rx_buf, MAX_BUFFER_SIZE,
-		DEFAULT_CMD_TIMEOUT_MS);
-	check_rc(rc, "Initialization");
-
-	tm_printf("%d, %d, %d", &client == NULL, client.net, client.net->connect);
-
-	rc = MqttClient_NetConnect(&client, "test.mosquitto.org", "1883", 
-		DEFAULT_CMD_TIMEOUT_MS, 0, NULL);
-	check_rc(rc, "Net Connection");
-	MqttConnect con;
-	rc = MqttClient_Connect(&client, &con);
-	check_rc(rc, "Connection");
-	MqttSubscribe sub;
-	rc = MqttClient_Subscribe(&client, &sub);
-	check_rc(rc, "Subscription");
-	rc = MqttClient_WaitMessage(&client, DEFAULT_CMD_TIMEOUT_MS);
-	check_rc(rc, "Waiting Message");
+LOCAL void runMQTT(void) {
+	MQTTCtx mqttCtx;
+	mqtt_init_ctx(&mqttCtx);
+	mqttCtx.app_name = "nbclient";
+	mqttCtx.host = "test.mosquitto.org";
+	mqttCtx.port = (word16)XATOI("1883");
+	int rc;
+	tm_putstring("runMQTT\n");
+	do {
+		tm_putstring("mqttclient_test\n");
+		rc = mqttclient_test(&mqttCtx);
+	} while (rc == MQTT_CODE_CONTINUE);
 }
 
 EXPORT INT usermain( void ) {
-	setupMQTT();
+	runMQTT();
 
 	T_CTSK t_ctsk;
 	ID objid;

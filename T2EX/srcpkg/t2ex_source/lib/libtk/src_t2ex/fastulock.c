@@ -98,7 +98,7 @@ EXPORT ER CreateULock( FastULock *lock, CONST UB *name )
 	if ( name == NULL ) {
 		csem.exinf = NULL;
 	} else {
-		strncpy((char*)&csem.exinf, (char*)name, sizeof(csem.exinf));
+		STRNCPY((char*)&csem.exinf, (char*)name, sizeof(csem.exinf));
 	}
 	csem.sematr  = TA_TPRI | TA_NODISWAI;
 #if USE_ATOMIC_INT

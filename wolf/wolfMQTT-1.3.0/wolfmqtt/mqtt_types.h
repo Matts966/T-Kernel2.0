@@ -121,6 +121,18 @@
     #include <stdio.h>
 #endif
 
+#ifdef TKERNEL
+    #define NO_EXIT
+
+    #ifndef WOLFMQTT_NONBLOCK
+        #define WOLFMQTT_NONBLOCK
+    #endif
+
+    #define WOLFMQTT_CUSTOM_PRINTF
+    #define PRINTF(_f_, ...)  tm_printf( (_f_ "\n"), ##__VA_ARGS__)
+
+#endif
+
 /* Allow custom override of data types */
 #if !defined(WOLFMQTT_CUSTOM_TYPES) && !defined(WOLF_CRYPT_TYPES_H)
     /* Basic Types */

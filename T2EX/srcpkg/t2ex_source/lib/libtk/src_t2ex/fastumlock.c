@@ -154,7 +154,7 @@ EXPORT ER CreateUMLock( FastUMLock *lock, CONST UB *name )
 	if ( name == NULL ) {
 		cflg.exinf = NULL;
 	} else {
-		strncpy((char*)&cflg.exinf, (char*)name, sizeof(cflg.exinf));
+		STRNCPY((char*)&cflg.exinf, (char*)name, sizeof(cflg.exinf));
 	}
 	cflg.flgatr  = TA_TPRI | TA_WMUL | TA_NODISWAI;
 #if USE_ATOMIC_INT
