@@ -1,0 +1,68 @@
+============================================================================
+"Modification of micro T-Kernel Source Code Package Ver 1.01.02"
+								May 13, 2013
+
+- Modification of micro T-Kernel Ver 1.01.02 -
+
+----
+UPDATE OF SOURCE CODE:
+
+  - Changed the form of the software package to include development 
+    environment (gcc)
+
+  - Fixed a bug where initial task cannot be created if "USE_IMALLOC" is 
+    defined as 0
+
+  - Fixed a bug where the created semaphore is not deleted when an error 
+    occurs during the invocation of tk_opn_dev()
+
+  - Corrected nul-termination check in tm_putstring
+
+  - Fixed a bug in AT91 version where part of the data of icrt0.S is 
+    executed as code
+
+  - Added "Csym" to the symbols for calling C-language functions from 
+    within assembler language source files
+
+  - "APPLICATION_STACK_TOP" is now defined only when non-zero value is set 
+    to "USR_STACK_SIZE"
+
+  - The typos in the comments of the source code have been fixed.
+
+----
+UPDATE OF DEVELOPMENT ENVIRONMENT:
+
+  - Commands such as "make" and "rm" are now called via macro names in Makefile
+
+  - Warnings about the undefined variable in Makefile are now suppressed
+
+  - Fixed a bug in AT91 version where "PROGBITS" is assigned to BSS section
+
+  - Added execution permission to files which lacked it.
+
+----
+UPDATE OF DOCUMENTS:
+
+  - The documents are now in UTF-8 instead of MS-Kanji (Shift-JIS).
+
+  - Updated "micro T-Kernel Source Code Manual"
+      srcpkg/doc/en/utkernel.txt
+        - Added a note on "make" command
+        - Corrected the explanation on the environment variable "BD"
+
+  - Updated "micro T-Kernel Implementation Specification"
+      srcpkg/doc/en/TEF020-W014-01.01.02.pdf
+      srcpkg/doc/en/TEF020-W015-01.01.02.pdf
+        - Corrected the explanation on "CFN_MAX_OPNDEV"
+
+  - Updated "How to install GNU tool"
+      srcpkg/doc/en/TEF020-W002-01.00.01.pdf
+      srcpkg/doc/en/TEF020-W003-01.00.01.pdf
+        - Updated the description on the reference of "micro T-Kernel 
+          Source Code Manual" (utkernel.txt)
+
+  - "Change Log for micro T-Kernel (Ver. 1.01.00 -> Ver. 1.01.01)"
+      srcpkg/changelog/en/TEF020-W012-01.00.04.pdf
+        - Corrected the explanation on some changes
+                                                                End of Memo
+============================================================================

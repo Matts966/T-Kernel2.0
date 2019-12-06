@@ -11,7 +11,7 @@
 !/T2EX/srcpkg/t2ex_source/**
 !/src/**
 !/wolf/*
-!/sd/*
+!/uT-Kernel2.0/**
 
 # Ignore unnecessary files inside allowed directories
 # This should go after the allowed directories

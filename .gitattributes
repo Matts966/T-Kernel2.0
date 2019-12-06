@@ -1,0 +1,2 @@
+srcpkg/uTK2.00.00SoftwarePackage.zip filter=lfs diff=lfs merge=lfs -text
+uT-Kernel2.0/develop/devenv_cortex-m3.tgz filter=lfs diff=lfs merge=lfs -text

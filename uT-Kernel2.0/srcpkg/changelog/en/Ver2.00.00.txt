@@ -1,0 +1,27 @@
+============================================================================
+"Modification of micro T-Kernel Source Code Package Ver 2.00.00"
+								September 1, 2014
+
+- Modification of micro T-Kernel Ver 2.00.00 -
+
+----
+UPDATE OF SOURCE CODE:
+
+  - Supports Cortex-M3
+
+  - Supports micr T-Kernel 2.0 Specification
+
+----
+UPDATE OF DOCUMENTS:
+
+  - Added "How to install GNU tool for Cortex-M3"
+      srcpkg/doc/en/TEF020-W024-01.00.00.pdf
+
+  - Added "micro T-Kernel Implementation Specification FM3(Cortex-M3)"
+      srcpkg/doc/en/TEF020-W025-01.01.02.pdf
+
+  - Updated "micro T-Kernel Source Code Manual"
+      srcpkg/doc/en/utkernel.txt
+        - Added an explanation on the support for Cortex-M3
+                                                                End of Memo
+============================================================================

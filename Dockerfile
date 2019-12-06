@@ -8,18 +8,14 @@ RUN git submodule update --init
 RUN ./configure --prefix=$(pwd)/build --target-list=arm-softmmu
 RUN make
 WORKDIR /usr/local
-RUN git clone https://github.com/jr4qpv/rpi_t-kernel.git
-ENV BD=/usr/local/rpi_t-kernel/tkernel_source
-ENV GNU_BD=/usr
-COPY sd /usr/local/sd
-WORKDIR $BD/monitor/tmmain/build/rpi_bcm283x.rpi2.debug
-RUN make && mv tmonitor.bin /usr/local/sd
-WORKDIR $BD/kernel/sysmain/build_t2ex/rpi_bcm283x.rpi2.debug
-RUN make && mv kernel_t2ex-rom.bin /usr/local/sd
-WORKDIR $BD/config/build_t2ex/rpi_bcm283x.rpi2
-RUN make && mv rominfo_t2ex-rom.bin /usr/local/sd
 
-WORKDIR /usr/local
+ADD uT-Kernel2.0/develop/devenv_cortex-m3.tgz /usr/local/
+ADD uT-Kernel2.0/srcpkg/utkernel.2.00.00.tar.gz /usr/local/
+ENV BD=/usr/local/utkernel_source
+ENV GNU_BD=/usr
+ENV GNUARM_2=$GNU_BD/arm-none-eabi
+
+WORKDIR $BD/kernel/sysmain/build/
 
 # RUN dd if=/dev/zero of=./sd.img bs=1024 count=4194304 && \
 #     losetup -fP ./sd.img && \
@@ -61,8 +57,8 @@ WORKDIR /usr/local
 # COPY emulator/tef_em1d/Image/* /usr/local/
 
 # ADD develop/te.Linux-i686.common.15.tar.gz /usr/local/srcpkg/
-COPY docker-entrypoint.sh /usr/local
-RUN chmod +x /usr/local/docker-entrypoint.sh
+# COPY docker-entrypoint.sh /usr/local
+# RUN chmod +x /usr/local/docker-entrypoint.sh
 
 ENTRYPOINT [ "/bin/bash" ]
 

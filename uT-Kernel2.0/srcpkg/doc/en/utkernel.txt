@@ -1,0 +1,540 @@
+ *---------------------------------------------------------------------
+ *    micro T-Kernel
+ *
+ *    Copyright (C) 2006-2014 by Ken Sakamura. All rights reserved.
+ *    micro T-Kernel is distributed under the micro T-License.
+ *---------------------------------------------------------------------
+ *
+ *    Version:   2.00.00
+ *    Released by T-Engine Forum (http://www.t-engine.org) at 2014/09/01.
+ *
+ *---------------------------------------------------------------------
+ *
+ *    micro T-Kernel Source Code Manual   Rev.2.00.00
+ *
+ *---------------------------------------------------------------------
+
+This manual describes the "micro T-Kernel source code version 2.00.00".
+
+
+Contents
+
+  0. Overview
+
+  1. Directory Configuration
+    1.1 Overview of Directory Configuration
+    1.2 Source Directory and Build Directory
+    1.3 Hardware-Dependant Part
+    1.4 Overview of the Directory Structure
+    1.5 func Directory
+
+  2. kernel Directory
+    2.1 Directory Structure
+    2.2 Kernel Basic Part Under the kernel Directory
+    2.3 Hardware-Dependant Part Under the kernel Directory
+    2.4 Application-Dependant Part Under the kernel Directory
+
+  3. lib Directory
+    3.1 Directory Structure
+    3.2 Description of Each Directory
+
+  4. include Directory
+    4.1 Directory Structure
+    4.2 Description of Each Directory
+
+  5. config Directory
+    5.1 Directory Structure
+
+  6. Building of micro T-Kernel 
+   6.1 Procedure for Building micro T-Kernel 
+   6.2 Procedures for Loading micro T-Kernel to target system
+
+  7. Resources Used by micro T-Kernel
+   7.1 Kernel Objects 
+   
+  8. micro T-Kernel Start-up
+   8.1 micro T-Kernel Initialization sequence
+   8.2 Start-up processing by Initial Task
+
+
+0. Overview
+The micro T-Kernel Source code (hereinafter referred to as "this source code") is the source code distributed by the T-Engine Forum.
+This source code is compliant with the "micro T-Kernel Specification version 2.00.02".
+
+This source code supports the target boards listed below. Abbreviations of the target board type and CPU abbreviations are the names used in this source code.
+
+Target board Type                   Target board type abbreviation  CPU abbreviation
+-----------------------------------------------------------------------------
+ SK-FM3-48PMC-USBSTICK (Cortex-M3)  app_mb9af312k                   mb9af312k
+
+The target board abbreviations are described by combining the following T-Engine type abbreviations and CPU abbreviations.
+
+T-Engine Type        T-Engine Type abbreviation   
+------------------------------------------------------
+Standard  T-Engine   std_ 
+micro T-Engine       mic_
+T-Engine Appliance   app_ 
+
+Although reference source code of micro T-Kernel 2.0 includes hardware-dependent parts of target boards which are supported by micro T-Kernel 1.0, these hardware-dependent parts are included for reference purposes only and not supported by micro T-Kernel 2.0 officially.
+
+Target board Type                   Target board type abbreviation  CPU abbreviation
+-----------------------------------------------------------------------------
+ H8S/2212 board                     app_h8s2212                     h8s2212
+ AT91 (ARM7TDMI)                    app_at91                        at91
+
+If you are interested in using hardware-dependent parts, you are on your own: you may need to modify the parts, if necessary, and you must test them before practical use.
+
+
+1. Directory Configuration
+
+1.1 Overview of Directory Configuration
+This source code consists of multiple directories.
+The top directory consists of the following 5 directories:
+
+< Directory Configuration>
+
+    kernel     micro T-Kernel body
+
+    lib        Library
+               (Including the interface library of system calls)
+
+    include    various types of definition files  (header files)
+
+    config     various types of configuration files
+
+    etc        make rules, and scripts, etc.
+               There is no source code file under this directory.
+
+
+1.2 Source Directory and Build Directory
+Sub-directories are broadly divided into the source directory and the build directory.
+As a rule, the name of the source directory is "src", and the name of the build directory is "build".
+
+There is the source file in the source directory. In the build directory, the make command is executed and an object file is created.
+In the build directory, there are the make rule definition file (makefile) and the built object files.
+
+
+1.3 Hardware-Dependant Part
+
+To clarify the extent of the hardware-dependent part, this source code is separated in units of directories.
+It may be necessary to change some source codes if an application is actually developed and incorporated into a product.
+These source codes are referred to as application-dependent parts, and, as with hardware-dependent parts, are separated in units of directories to clarify the source codes that need to be changed.
+
+The source code of micro T-Kernel is divided into the following three parts according to above:
+
+(1) Kernel Basic Part
+This part provides the basic functions of micro T-Kernel, which do not depend on the hardware or applications.
+It is not necessary to change the Kernel basic part unless micro T-Kernel function is modified.
+
+(2) Hardware-Dependant Part
+This part depends on the target hardware, and needs to be changed.
+Normally, a hardware-dependent part needs to be prepared for each hardware device.
+In addition, you can port to the new hardware by changing the hardware-dependent part only.
+
+(3) Application-Dependant Part
+This part needs to be changed in accordance with the application that runs on micro T-Kernel.
+Normally, the application-dependent part shall be prepared for each product.
+Only the required minimum functions are implemented in the application-dependent part of the distributed micro T-Kernel.
+
+
+1.4 Overview of the Directory Structure
+The diagram below shows the directory structured diagram of the entire micro T-Kernel source code.
+For the sake of simplicity, hierarchies in the source directory (src) and the build directory (build) are omitted.
+The completed structured diagram will be shown later.
+
+In the diagram, the names of directories enclosed with "[ ]" and the sub-directories are the hardware-dependent parts. Also, the names of directories enclosed with "< >" and the sub-directories are the application-dependent parts.
+The others are the Kernel basic parts.
+
+In the diagram, the directory [TARGET] can be replaced by the abbreviation of the target board type.
+The directory [CPU] can be replaced by the abbreviation of the target CPU.
+
+
+kernel                        micro T-Kernel body
+|-- sysinit                         System initialization
+|-- tkernel                         micro T-Kernel
+|-- sysmain                         System main
+|-- sysdepend                       Hardware-dependent part
+|   |-- cpu                             CPU-dependent part
+|   |   `-- [CPU]
+|   `-- device                          Device-dependent part
+|       `-- [TARGET]
+|-- tstdlib                         Standard library to build micro T-Kernel
+|
+`-- <usermain>                      User main
+
+lib                           Library
+|-- libsvc                          micro T-Kernel system call I/F library
+|   `-- sysdepend                       Hardware-dependent part
+|       |-- include                     Common definition files
+|       `-- [CPU]
+|-- libtk                           micro T-Kernel function call library
+|   `-- sysdepend                       Hardware-dependent part
+|       `-- [TARGET]
+|-- libtm                           T-Monitor-equivalent function I/F library
+|   `-- sysdepend                       Hardware-dependent part
+|       `-- [TARGET]
+`-- libstr                          Character String operation library
+
+include                       Definition files
+|-- tk                              micro T-Kernel-related definition files
+|   `-- sysdepend                       Hardware-dependent part
+|       `-- [TARGET]
+|-- sys                             Definition files of system internal information
+|   |-- sysdepend                       Hardware-dependent part
+|   |   `-- [TARGET]
+|   `-- svc                             System call definition
+`-- tm                              T-Monitor-equivalent function definition files
+
+config                        Configuration information
+`-- sysdepend                       Hardware-dependent part
+     `-- [TARGET]
+
+
+1.5. func Directory
+When there is a directory named func in src directory, the file that divided the kernel source code in units of functions is put in this func directory. The file in units of functions is automatically created when building the kernel. Accordingly, even if you edit the file in the func directory, this file will be overwritten when building the kernel next time. Edit the file in src directory.
+
+
+2. kernel Directory
+There is the source code of micro T-Kernel body in the kernel directory.
+
+2.1 Directory Structure
+The diagram below shows the kernel directory structure.
+
+kernel
+|-- sysinit                 System initialization (Kernel basic part)
+|   |-- build                     Build directory
+|   |   `-- [TARGET]
+|   `-- src                       Source directory
+|
+|-- tkernel                 micro T-Kernel (Kernel basic part)
+|   |-- build                     Build directory
+|   |   `-- [TARGET]
+|   `-- src                       Source directory
+|
+|-- sysmain                 System main (Kernel basic part)
+|   |-- build                     Build directory
+|   |   `-- [TARGET]              <-- Directory for executing make
+|   `-- src                       Source directory
+|
+|-- sysdepend               Hardware-dependent part
+|   |-- cpu                       CPU-dependent part
+|   |   `-- [CPU]
+|   `-- device                    Device-dependent part
+|       `-- [TARGET]
+|
+|-- tstdlib                 Standard library to build micro T-Kernel
+|
+`-- <usermain>                User main (application-dependent part)
+
+
+In the above diagram of directory structure, the directory [TARGET] can be replaced by the abbreviation of the target board type.
+The directory [CPU] can be replaced by the abbreviation of the target CPU.
+
+
+2.2 Kernel Basic Part Under the kernel Directory
+The Kernel basic part under the kernel directory consists of 4 directories: sysinit, tkernel, sysmain, and tstdlib.
+There is the source code of the Kernel basic part in the src directory under each directory.
+
+(1) sysinit directory
+micro T-Kernel initialization/finalization sequences routines.
+
+(2) tkernel directory
+micro T-Kernel source code.
+
+(3) sysmain directory
+Build directory for the entire micro T-Kernel.
+An object file for the micro T-Kernel can be created by making a directory in the target system for building under the sysmain/build directory, and executing the make command in the directory.
+
+The directory under other directories (sysinit, tkernel, and tstdlib) is the build directory in each module unit used in the process of building the entire micro T-Kernel.
+
+(4) tstdlib directory
+Source code of the standard library function (primarily bit-operation-related) used in micro T-Kernel.
+
+
+2.3 Hardware-Dependant Part Under the kernel Directory
+The hardware-dependent part under the kernel directory is the sysdepend directory. The hardware-dependent part depends on the target hardware and system configuration, and shall be changed when porting is executed.
+
+The sysdepend directory consists of the following two directories:
+
+(1) sysdepend/cpu directory
+Source code that depends on the CPU of the target system.
+A directory of the target CPU is made in this directory, and the appropriate source code is put in the directory.
+
+(2) sysdepend/device directory
+Source code that depends on hardware other than CPU of the target system.
+A directory of the target system is made in this directory, and the appropriate source code is put in the directory.
+
+The CPU-dependent part is separated from hardware-dependent parts other than the CPU, because this separation facilitates the porting to different hardware systems with the identical CPU.
+If the CPU is identical, porting can be facilitated by adapting the source codes in the sysdepend/device directory only. The adaptation of source codes in sysdepend/cpu is not required for that.
+
+
+2.4 Application-Dependant Part Under the kernel Directory
+The application-dependent part under the kernel directory is only the usermain directory. The following is a description of the usermain directory:
+
+(1) usermain directory
+User program. This directory is usually used to put the programs executed in the initial task of the application and the source code for setting parameters at the time of creating the initial task.
+In this source code, for example, this is just the program that outputs the character to console using the function of T-Monitor-equivalent function.
+
+
+3. lib Directory
+There is the source code of the library used for micro T-Kernel and user programs in the lib directory.
+
+3.1 Directory Structure
+The diagram below shows the lib directory structure.
+
+lib
+|-- libsvc                      micro T-Kernel system call I/F library
+|   |-- build                       Build directory
+|   |   `-- [CPU]
+|   `-- src                         Source directory
+|       `-- sysdepend                   Hardware-dependent part
+|           |-- include                     Common definition files
+|           `-- [CPU]
+|
+|-- libtk                       micro T-Kernel function call library
+|   |-- build                       Build directory
+|   |   `-- [TARGET] 
+|   `-- src                         Source directory
+|       `-- sysdepend                   Hardware-dependent part
+|           `-- [TARGET]
+|
+|-- libtm                       T-Monitor-equivalent function I/F library
+|   |-- build                       Build directory
+|   |   `-- [TARGET]
+|   `-- src                         Source directory
+|       `-- sysdepend                   Hardware-dependent part
+|           `-- [TARGET]
+|
+|-- libstr                      Character-String operation library
+|   |-- build                       Build directory
+|   |   `-- [CPU]
+|   `-- src                         Source directory
+|
+`-- build                       Build directory (all libraries)
+    `-- [TARGET]                <-- Directory for executing make 
+
+
+In the above diagram of directory structure, the directory [TARGET] can be replaced by the abbreviation of the target board type.
+The directory [CPU] can be replaced by the abbreviation of the target CPU.
+
+
+3.2 Description of Each Directory
+
+The following are descriptions of each sub-directory in the lib directory:
+
+(1) libsvc directory
+Interface library for micro T-Kernel system call. The interface library is made for each CPU.
+A directory of the target CPU is made in the sysdepend directory, which is under the src directory, and there is the source code in the directory.
+The build directory is the directory for building. The built libsvc library is linked to a user program for use if necessary.
+ 
+(2) libtk directory
+Function library provided by micro T-Kernel. There is the source code under the src directory.
+The source code just in the src directory is the Kernel basic part, and does not need to be changed.
+In the hardware-dependent part, a directory of the target system is made in the sysdepend directory, which is under the src directory, and there is the source code in the directory.
+The build directory is the directory for building. The built libtk library is linked to a user program for use if necessary.
+
+(3) libtm directory
+Function library for the T-Monitor-equivalent function. There is the source code under src directory.
+The source code just in the src directory is the Kernel basic part, and does not need to be changed.
+In the hardware-dependent part, a directory of the target system is made in the sysdepend directory, which is under the src directory, and there is the source code in the directory.
+The build directory is the directory for building. The built libtm library is linked to a user program for use if necessary.
+
+(4) libtk directory
+Source code of the standard library function (primarily character string-operation-related) used in micro T-Kernel and libraries.
+
+(5) build directory
+Build directory for all libraries.
+Object files for all libraries can be created by making a directory of the target system to be built under the lib/build directory, and executing the make command in the directory.
+The directory under other directories (libsvc, libtk, tstdlib, and libtk) is the build directory in each module unit used in the process of building the entire libraries.
+
+
+4. include Directory
+The include directory includes various types of definition files (header files) used for micro T-Kernel and user programs.
+As there are only definition files under this directory, no object file is generated.
+
+4.1 Directory Structure
+The diagram below shows the include directory structure.
+
+include
+|-- tk                      micro T-Kernel-related definition files
+|   `-- sysdepend               Hardware-dependent part
+|       `-- [TARGET]
+|
+|-- sys                     Definition files of internal information in the system
+|   |-- sysdepend               Hardware-dependent part
+|   |   `-- [TARGET]
+|   `-- svc                     System call definition
+|
+`-- tm                      T-Monitor-equivalent function definition files
+
+In the above diagram of directory structure, the directory [TARGET] can be replaced by the abbreviation of the target board type.
+
+
+4.2 Description of Each Directory
+The following are descriptions of each directory under the include directory:
+
+(1) include directory 
+In the include directory, there is the type definition files used in common.
+All files just in the include directory are the Kernel basic parts.
+
+(2) tk directory
+There are micro T-Kernel-related definition files in this directory. The files just in the tk directory are the Kernel basic parts. The hardware-dependent part is put in the directory that is made in the target system under the sysdepend directory. As a rule, the definition files under the sysdepend directory are included in the upper definition files. Hardware-dependent definition files do not need to be directly included by the user program.
+
+(3) sys directory
+There are micro T-Kernel system internal information-related definition files in this directory. These files are used in system programs such as subsystems and libraries.
+Normally, they are not used in an application program. The files just in the sys directory are the Kernel basic parts. The sys directory consists of the following two directories:
+
+  sys/sysdepend directory
+      There are the definition files of the system information hardware-
+      dependent part in this directory. Each definition file is put in the directory that is made
+      for the target system in the sysdepend directory.
+      As a rule, the definition files under the sysdepend directory are included in 
+      the upper definition files. The definition files of the hardware-dependent part 
+do not need to be directly included by the user program.
+
+  sys/svc directory
+      There are the extended SVC-related definition files in this directory.
+
+(4) tm directory
+There are the T-Monitor-equivalent function definition files in this directory. The files under this directory are the Kernel basic parts.
+
+
+5. config Directory
+In the config directory, there are various types of configuration files (config.h, utk_config.h, and utk_config_func.h, etc.) used for micro T-Kernel.
+All of the source codes under this directory are hardware-dependent parts.
+
+5.1 Directory Structure
+The diagram below shows the config directory structure.
+
+config
+|
+`-- sysdepend              Hardware-dependent part
+    `--[TARGET]       
+
+In the above diagram of directory structure, the directory [TARGET] can be replaced by the abbreviation of the target board type.
+
+
+6. Building of micro T-Kernel
+
+6.1 Procedures for Building micro T-Kernel 
+This section describes the procedure for building the load module of micro T-Kernel.
+
+(1) Preparation of the Development Environment
+Install the development environment in accordance with the target system. Ensure that the development environment can be normally used.
+
+Note: GNU make is used for building micro T-Kernel.
+
+
+(2) Preparation of the micro T-Kernel Source Code
+Make a directory in any location, and extract all files of micro T-Kernel source codes from archive file.
+Next, in the environment variable BD, the top directory of micro T-Kernel source is set.
+
+Note: The environment variable BD indicates the micro T-Kernel base directory. If necessary, change it after installing micro T-Kernel.
+
+
+The following shows the procedures for extracting micro T-Kernel source code and installing it in the /usr/local/te directory ("%" is a shell prompt) :
+
+  % cd /usr/local/te
+  % tar xvfz utkernel.x.xx.xx.tar.gz           (x.xx.xx: version number)
+  % export BD=/usr/local/te/utkernel_source    (for bash)
+
+(3) Building of the Kernel
+Move to the $BD/kernel/sysmain/build/[TARGET] directory. [TARGET] is the abbreviation of the target board type.
+The make command is executed here to build the load module of the Kernel (kernel-rom.mot) in the $BD/kernel/sysmain/build/[TARGET] directory.
+
+The following shows an example of the AT91(ARM7TDMI) board ("%" is a shell prompt):
+
+  % cd $BD/kernel/sysmain/build/app_at91
+  % make
+
+
+6.2 Procedures for Loading micro T-Kernel
+The load module for the generated micro T-Kernel (kernel-rom.mot) shall be loaded into the target board.
+Regarding how to load it into target board, refer to manuals for the target board and the development environment.
+
+
+7. Resources Used by micro T-Kernel
+
+7.1 Kernel Objects
+For micro T-Kernel, the following Kernel objects in the system shall be used:
+Meanwhile, ID number is dynamically assigned. Therefore, the following indicates the ID number when micro T-Kernel normally starts
+
+-----------+-------+----------+--------------------------------------
+    Type   |   ID  |  Name    |            Description
+-----------+-------+----------+--------------------------------------
+Task       |   1   |  INIT    | Initial task
+-----------+-------+----------+--------------------------------------
+Message    |   -   |  DEvt    | Event notification (Unused by default)
+  Buffer   |       |          | Change available in the CFN_DEVT_MBFSZ of utk_config_depend.h
+-----------+-------+----------+--------------------------------------
+Semaphore  |   -   |  (NULL)  | Device management synchronous control
+           |       |          | (Use one semaphore every time device is opened)
+-----------+-------+----------+--------------------------------------
+Event Flag |   1   |  DevMgr  | Lock control of the entire device management
+-----------+-------+----------+--------------------------------------
+
+
+8. micro T-Kernel Start-up
+
+8.1 micro T-Kernel Initialization sequence
+After the system start-up, micro T-Kernel initialization sequences are executed in accordance with the following steps:
+
+(1) Reset Handler   C initialization routines (sysdepend/device/[TARGET]/vector.S,startup_rom.S,icrt0.S)
+The preprocessing for running the programs including the initialization of register, cache, and variable area shall be executed.
+
+(2) main   Kernel main routines  (sysinit/src/sysinit_main.c)
+Start micro T-Kernel start-up processing. In this processing, the device initialization sequence(knl_init_device) and the kernel dynamic memory allocation initialization sequence(knl_init_Imalloc) shall be called before calling the Kernel main processing(knl_t_kernel_main).
+Program doesn't return from the Kernel main processing.
+
+(3) knl_t_kernel_main   Kernel main processing (kernel/tkernel/tkstart.c)
+This is called from "main" as above. Each micro T-Kernel function is initialized.
+As the final step, the initial task is created and started. When the initial task is created, micro T-Kernel starts up and all functions are active.
+When the initial task starts, micro T-Kernel start-up processing is completed.
+
+(3-1) knl_cpu_initialize    CPU-related initialization sequence
+        (sysdepend/cpu/[TARGET]/cpu_init.c)
+CPU-dependent initialization sequence such as the registration of the exception handler used in Kernel and the co-processor-related setting is executed.
+
+(3-2) knl_tkdev_initialize   Device-related initialization sequence
+        (sysdepend/device/[TARGET]/tkdev_init.c)
+Non-CPU hardware-dependent initialization sequence such as the disable interrupts of each device is executed.
+
+(3-3) Initialization of each function module
+Initialization routines for the function module shall be executed in accordance with the following steps. 
+    
+    knl_task_initialize           the task function initialization           (tkernel/task.c)
+    knl_semaphore_initialize      the Semaphore function initialization      (tkernel/semaphore.c)
+    knl_eventflag_initialize      the event-flag function initialization     (tkernel/eventflag.c)
+    knl_mailbox_initialize        the mailbox function initialization        (tkernel/mailbox.c)
+    knl_messagebuffer_initialize  the message-buffer function initialization (tkernel/messagebuf.c)
+    knl_rendezvous_initialize     the Rendezvous function initialization     (tkernel/rendezvous.c)
+    knl_mutex_initialize          the Mutex function initialization          (tkernel/mutex.c)
+    knl_memorypool_initialize     the variable-size memory pool function initialization (tkernel/mempool.c)
+    knl_fix_memorypool_initialize the fixed-size memory pool function initialization    (tkernel/mempfix.c)
+    knl_cyclichandler_initialize  the cyclic handler function initialization (tkernel/time_calls.c)
+    knl_alarmhandler_initialize   the alarm handler function initialization  (tkernel/time_calls.c)
+    knl_subsystem_initialize      the subsystem function initialization      (tkernel/subsystem.c)
+    knl_timer_initialize          the system timer function initialization   (tkernel/timer.c)
+    
+(3-4) knl_init_task_startup    Creation and start-up of the initial task 
+         (kernel/tkernel/tkstart.c)
+
+
+8.2 Start-up processing by Initial Task
+In the initial task knl_init_task (sysinit/sysinit_main.c), the device management initialization(knl_initialize_devmgr) is executed. After this, the processing defined by a user shall be executed.
+
+
+(1) knl_initialize_devmgr  (kernel/src/device.c)
+    the device management initialization sequence is executed.
+
+(2) knl_init_task_main     (sysmain/inittask_main.c)
+    The user-defined processing is executed in accordance with the following steps:
+
+(2-1) userinit   User-defined initialization sequence.
+    The user-defined initialization program set in utk_config_depend.h is executed.
+    
+(2-2) usermain    User-defined initial-task main processing (usermain/usermain.c)
+    This is the initial task's main processing defined by a user. 
+    When this process is completed, the initial task is completed and the micro T-Kernel finalization processing starts.
+    Application program shall be written in this function.
+    Stack size of the initial task and the setting value of the initial priority shall be changed as needed. (usermain/inittask_def.h)

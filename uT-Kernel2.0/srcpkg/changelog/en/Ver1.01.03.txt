@@ -1,0 +1,32 @@
+============================================================================
+"Modification of micro T-Kernel Source Code Package Ver 1.01.03"
+								July 28, 2014
+
+- Modification of micro T-Kernel Ver 1.01.03 -
+
+----
+UPDATE OF SOURCE CODE:
+
+  - Modified the alignment of the memory secured by Imalloc()
+
+----
+UPDATE OF DEVELOPMENT ENVIRONMENT:
+
+  - Changed the directory in which executable perl is stored
+
+  - Improved the description of the dependency relation in makefile
+
+----
+UPDATE OF DOCUMENTS:
+
+  - Updated "How to install GNU tool"
+      srcpkg/doc/en/TEF020-W002-01.00.02.pdf
+      srcpkg/doc/en/TEF020-W003-01.00.02.pdf
+        - Deleted the description of creating a symbolic link of perl
+
+  - Updated "micro T-Kernel Source Code Manual"
+      srcpkg/doc/en/utkernel.txt
+        - Updated the source code version of micro T-Kernel
+        - Updated the referred version of micro T-Kernel specification
+                                                                End of Memo
+============================================================================
