@@ -82,6 +82,10 @@ EXPORT INT usermain( void ) {
 	}
 	tm_putstring("*** task_b started.\n");
 
+	// Network initialization and test
+	IMPORT	void	net_test(void);
+	net_test();
+
 	t_ctsk.itskpri = 1;
 	t_ctsk.stksz = 1024;
 	STRCPY( (char *)t_ctsk.dsname, "task_mqtt");
