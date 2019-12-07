@@ -48,6 +48,8 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 			&mqttCtx.client == NULL, (&mqttCtx.client)->net == NULL,
 			(&mqttCtx.client)->net->connect == NULL);
 	} while (rc == MQTT_CODE_CONTINUE);
+	tm_putstring("exit task_mqtt, cause: %s\n",
+		MqttClient_ReturnCodeToString(rc))
 	tk_ext_tsk();
 }
 
