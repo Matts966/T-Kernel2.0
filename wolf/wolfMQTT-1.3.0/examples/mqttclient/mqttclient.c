@@ -583,7 +583,7 @@ exit:
 
 
 /* so overall tests can pull in test function */
-#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY)
+#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY) && !defined(TKERNEL)
     #ifdef USE_WINDOWS_API
         #include <windows.h> /* for ctrl handler */
 
