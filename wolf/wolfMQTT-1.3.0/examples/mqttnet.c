@@ -663,9 +663,10 @@ static int NetConnect(void *context, const char* host, word16 port,
 
             /* Create socket */
             sock->fd = SOCK_OPEN(sock->addr.sin_family, type, 0);
-            if (sock->fd == SOCKET_INVALID)
+            if (sock->fd == SOCKET_INVALID) {
                 PRINTF("[SOCK_OPEN] FAILED");
                 goto exit;
+            }
 
             sock->stat = SOCK_CONN;
 
@@ -714,8 +715,10 @@ static int NetConnect(void *context, const char* host, word16 port,
         }
 
         default:
+        {
             PRINTF("default");
             rc = -1;
+        }
     } /* switch */
 
     (void)timeout_ms;
