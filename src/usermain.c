@@ -8,6 +8,7 @@
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
+EXPORT ID initila_task_id;
 
 EXPORT void task_a(INT stacd, VP exinf);
 EXPORT void task_a(INT stacd, VP exinf) {
@@ -50,6 +51,8 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 	} while (rc == MQTT_CODE_CONTINUE);
 	tm_printf("exit task_mqtt, cause: %s\n",
 		MqttClient_ReturnCodeToString(rc));
+	if ( tk_wup_tsk( initial_task_id ) != E_OK )
+		tm_putstring(" *** Failed in tk_wup_tsk to initial_task\n");
 	tk_ext_tsk();
 }
 
@@ -136,7 +139,7 @@ EXPORT INT usermain( void ) {
 	// Network initialization and test
 	net_test();
 
-	t_ctsk.itskpri = 1;
+	t_ctsk.itskpri = 2;
 	t_ctsk.stksz = 1024;
 	STRCPY( (char *)t_ctsk.dsname, "task_mqtt");
 	t_ctsk.task = task_mqtt;
@@ -147,6 +150,8 @@ EXPORT INT usermain( void ) {
 	ObjID[TASK_MQTT] = objid;
 	tm_putstring("*** task_mqtt created.\n");
 
+	initial_task_id = tk_get_tid();
+
 	while ( 1 ) {
 		tm_putstring((UB*)"Push a to start task_a, m to start task_mqtt. ");
 		char c = tm_getchar(-1);
@@ -155,6 +160,7 @@ EXPORT INT usermain( void ) {
 			tk_sta_tsk( ObjID[TASK_A], 0 );
 		} else if (c == 'm') {
 			tk_sta_tsk( ObjID[TASK_MQTT], 0 );
+			tk_slp_tsk( TMO_FEVR );
 		}
 	}
 }
