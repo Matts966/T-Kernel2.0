@@ -838,8 +838,13 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
     SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
 #endif
 
+#ifndef TKERNEL
+    rc = (int)SOCK_SEND(sock->fd, buf, buf_len, MSG_OOB);
+    if (rc < 0) {
+#else
     rc = (int)SOCK_SEND(sock->fd, buf, buf_len, 0);
     if (rc == -1) {
+#endif
         /* Get error */
         socklen_t len = sizeof(so_error);
         SOCK_GETSOCKOPT(sock->fd, SOL_SOCKET, SO_ERROR, &so_error, &len);
