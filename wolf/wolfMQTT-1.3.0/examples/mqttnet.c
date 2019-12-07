@@ -838,7 +838,7 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
     SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
 #endif
 
-#ifndef TKERNEL
+#ifdef TKERNEL
     rc = (int)SOCK_SEND(sock->fd, buf, buf_len, MSG_OOB);
     if (rc < 0) {
 #else
