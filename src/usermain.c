@@ -8,7 +8,7 @@
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
-EXPORT ID initila_task_id;
+EXPORT ID initial_task_id;
 
 EXPORT void task_a(INT stacd, VP exinf);
 EXPORT void task_a(INT stacd, VP exinf) {
