@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # QEMU-tef_em1d emulator execution
 #
@@ -23,7 +23,7 @@
 #   -S                : Wait for gdb connection
 #   -gdb tcp:127.0.0.1:1234
 #
-if [ "$4" = "true" ]; then
+if [[ "$4" = "true" ]]; then
     VNC="-vnc 0.0.0.0:0 -tp xmin=944,xmax=64,ymin=912,ymax=80,xchg=on"
 else
     VNC=""
@@ -35,5 +35,4 @@ $QEMU_BIN_DIR/qemu-tef_em1d \
 -sd ${2:-$QEMU_BIN_DIR/sd.img} \
 -rtc base=localtime \
 -serial tcp:0.0.0.0:${3:-10000},server $VNC \
-# -net user \
 $5 $6 $7 $8

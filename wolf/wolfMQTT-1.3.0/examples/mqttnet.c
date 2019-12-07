@@ -605,39 +605,24 @@ static int NetConnect(void *context, const char* host, word16 port,
             sock->addr.sin_family = AF_INET;
 
         #ifdef TKERNEL
-            char* buf;
-            int size;
-            size = so_getaddrinfo(host, NULL, &hints, &result, NULL, 0, NULL);
-            if ( size < 0 ) {
+            char buf[512];
+
+            rc = so_getaddrinfo(host, NULL, &hints, &result, buf, sizeof buf, NULL);
+            PRINTF("resolv_host: so_getaddrinfo = %d(%d, %d)\n",
+                rc, MERCD(rc), SERCD(rc));
+            if ( rc < 0 || result == NULL ) {
+                PRINTF("[getaddrinfo] FAILED\n");
                 goto exit;
             }
-            buf = malloc(size);
-            rc = so_getaddrinfo(host, NULL, &hints, &result, buf, size, NULL);
 
-            if (rc >= 0 && result != NULL) {
-                struct addrinfo* res = result;
-
-                /* prefer ip4 addresses */
-                while (res) {
-                    if (res->ai_family == AF_INET) {
-                        result = res;
-                        break;
-                    }
-                    res = res->ai_next;
-                }
-
-                if (result->ai_family == AF_INET) {
-                    sock->addr.sin_port = htons(port);
-                    sock->addr.sin_family = AF_INET;
-                    sock->addr.sin_addr =
-                        ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr;
-                }
-                else {
-                    rc = -1;
-                }
-
-                free(buf);
-            }
+            sock->addr.sin_port = htons(port);
+            sock->addr.sin_family = AF_INET;
+            sock->addr.sin_addr =
+                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr;
+            PRINTF("[getaddrinfo] ai_family: $d, sin_addr: $d, s_addr: $d\n",
+                result->ai_family,
+                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr,
+                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr.s_addr);
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
             if (rc >= 0 && result != NULL) {
@@ -1051,22 +1036,34 @@ int MqttClientNet_Init(MqttNet* net, MQTTCtx* mqttCtx)
     }
 #endif /* MICROCHIP_MPLAB_HARMONY */
 
-    SocketContext* sockCtx;
+    PRINTF("before if (net) {");
 
-    XMEMSET(net, 0, sizeof(MqttNet));
-    net->connect = NetConnect;
-    net->read = NetRead;
-    net->write = NetWrite;
-    net->disconnect = NetDisconnect;
+    if (net) {
+        PRINTF("after if (net) {");
 
-    sockCtx = (SocketContext*)WOLFMQTT_MALLOC(sizeof(SocketContext));
-    if (sockCtx == NULL) {
-        return MQTT_CODE_ERROR_MEMORY;
+        SocketContext* sockCtx;
+
+        XMEMSET(net, 0, sizeof(MqttNet));
+
+        PRINTF("NetConnect: %d", NetConnect);
+
+        net->connect = NetConnect;
+
+        PRINTF("net->connect: %d", net->connect);
+
+        net->read = NetRead;
+        net->write = NetWrite;
+        net->disconnect = NetDisconnect;
+
+        sockCtx = (SocketContext*)WOLFMQTT_MALLOC(sizeof(SocketContext));
+        if (sockCtx == NULL) {
+            return MQTT_CODE_ERROR_MEMORY;
+        }
+        net->context = sockCtx;
+        XMEMSET(sockCtx, 0, sizeof(SocketContext));
+        sockCtx->stat = SOCK_BEGIN;
+        sockCtx->mqttCtx = mqttCtx;
     }
-    net->context = sockCtx;
-    XMEMSET(sockCtx, 0, sizeof(SocketContext));
-    sockCtx->stat = SOCK_BEGIN;
-    sockCtx->mqttCtx = mqttCtx;
 
     return MQTT_CODE_SUCCESS;
 }

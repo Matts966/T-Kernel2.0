@@ -130,6 +130,7 @@
 
     #define WOLFMQTT_CUSTOM_PRINTF
     #define PRINTF(_f_, ...)  tm_printf( (_f_ "\n"), ##__VA_ARGS__)
+    #define XMEMSET(b,c,l)    tkl_memset((b),(c),(l))
 
 #endif
 
