@@ -83,6 +83,54 @@ EXPORT INT usermain( void ) {
 	}
 	tm_putstring("*** task_b started.\n");
 
+	/* Start the device drivers */
+	ER	err;
+#ifdef DRV_CONSOLE
+	err = ConsoleIO(0, NULL);
+	tm_putstring(err >= E_OK ? "ConsoleIO - OK\n" : "ConsoleIO - ERR\n");
+#endif
+#ifdef DRV_CLOCK
+	err = ClockDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "ClockDrv - OK\n" : "ClockDrv - ERR\n");
+#endif
+#ifdef DRV_SYSDISK
+	err = SysDiskDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "SysDiskDrv - OK\n" : "SysDiskDrv - ERR\n");
+#endif
+#ifdef DRV_SCREEN
+	err = ScreenDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "ScreenDrv - OK\n" : "ScreenDrv - ERR\n");
+#endif
+#ifdef DRV_KBPD
+	err = KbPdDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "KbPdDrv - OK\n" : "KbPdDrv - ERR\n");
+#endif
+#ifdef DRV_LOWKBPD
+	err = LowKbPdDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "LowKbPdDrv - OK\n" : "LowKbPdDrv - ERR\n");
+#endif
+#ifdef DRV_NET
+	err = NetDrv(0, NULL);
+	tm_putstring(err >= E_OK ? "NetDrv - OK\n" : "NetDrv - ERR\n");
+#endif
+	/* Start the T2EX extension modules */
+#ifdef	USE_T2EX_DT
+	err = dt_main(0, NULL);
+	tm_putstring(err >= E_OK ? "dt_main(0) - OK\n":"dt_main(0) - ERR\n");
+#endif
+#ifdef	USE_T2EX_PM
+	err = pm_main(0, NULL);
+	tm_putstring(err >= E_OK ? "pm_main(0) - OK\n":"pm_main(0) - ERR\n");
+#endif
+#ifdef	USE_T2EX_FS
+	err = fs_main(0, NULL);
+	tm_putstring(err >= E_OK ? "fs_main(0) - OK\n":"fs_main(0) - ERR\n");
+#endif
+#ifdef	USE_T2EX_NET
+	err = so_main(0, NULL);
+	tm_putstring(err >= E_OK ? "so_main(0) - OK\n":"so_main(0) - ERR\n");
+#endif
+	libc_stdio_init();
 	// Network initialization and test
 	net_test();
 
