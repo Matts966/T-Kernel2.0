@@ -40,14 +40,11 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 	mqttCtx.cmd_timeout_ms = XATOI("1000");
 	mqttCtx.qos = (MqttQoS)((byte)XATOI("0"));
 	mqttCtx.test_mode = 1;
+	mqttCtx.topic_name = "#"
 	int rc;
 	tm_putstring("runMQTT\n");
 	do {
-		tm_putstring("mqttclient_test\n");
 		rc = mqttclient_test(&mqttCtx);
-		tm_printf("client: %d, net: %d, connect: %d\n",
-			&mqttCtx.client == NULL, (&mqttCtx.client)->net == NULL,
-			(&mqttCtx.client)->net->connect == NULL);
 	} while (rc == MQTT_CODE_CONTINUE);
 	tm_printf("exit task_mqtt, cause: %s\n",
 		MqttClient_ReturnCodeToString(rc));
