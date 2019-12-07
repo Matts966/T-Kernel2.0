@@ -42,7 +42,7 @@ COPY wolf/wolfMQTT-$WOLFMQTT_VERSION /usr/local/wolfMQTT-$WOLFMQTT_VERSION
 WORKDIR /usr/local
 
 RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
-    ./autogen.sh && ./configure --disable-tls \
+    ./autogen.sh && ./configure --disable-tls --enable-nonblock \
         --prefix=$BD --host=arm-non-eabi \
         CC=$GNU_BD/arm_2-unknown-tkernel/bin/gcc4arm \
         CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp -mthumb-interwork \
