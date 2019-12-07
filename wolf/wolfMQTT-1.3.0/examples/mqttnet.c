@@ -849,11 +849,20 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
         socklen_t len = sizeof(so_error);
         SOCK_GETSOCKOPT(sock->fd, SOL_SOCKET, SO_ERROR, &so_error, &len);
         if (so_error == 0) {
+        #ifdef TKERNEL
+            rc = -1;
+        #else
             rc = 0; /* Handle signal */
+        #endif
         }
         else {
         #ifdef WOLFMQTT_NONBLOCK
             if (so_error == EWOULDBLOCK || so_error == EAGAIN) {
+                if (so_error == EWOULDBLOCK) {
+                    PRINTF("NetWrite: EWOULDBLOCK");
+                } else {
+                    PRINTF("NetWrite: EAGAIN");
+                }
                 return MQTT_CODE_CONTINUE;
             }
         #endif
