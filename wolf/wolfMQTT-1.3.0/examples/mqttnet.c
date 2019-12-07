@@ -622,10 +622,10 @@ static int NetConnect(void *context, const char* host, word16 port,
             sock->addr.sin_family = AF_INET;
             sock->addr.sin_addr =
                 ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr;
-            PRINTF("[getaddrinfo] ai_family: %d, sin_addr: %d, s_addr: %d",
-                result->ai_family,
-                ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr,
-                ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr.s_addr);
+            char rbuf[18];
+            PRINTF("[getaddrinfo] ipv4?: %d, in_addr: %s",
+                result->ai_family == AF_INET,
+                inet_ntop(AF_INET, &sock->addr.sin_addr, rbuf, sizeof(rbuf)));
             rc = MQTT_CODE_SUCCESS;
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
