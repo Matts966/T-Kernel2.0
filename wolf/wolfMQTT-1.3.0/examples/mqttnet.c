@@ -621,11 +621,11 @@ static int NetConnect(void *context, const char* host, word16 port,
             sock->addr.sin_port = htons(port);
             sock->addr.sin_family = AF_INET;
             sock->addr.sin_addr =
-                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr;
+                ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr;
             PRINTF("[getaddrinfo] ai_family: $d, sin_addr: $d, s_addr: $d\n",
                 result->ai_family,
-                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr,
-                ((SOCK_ADDR_IN*)(result->ai_addr))->sin_addr.s_addr);
+                ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr,
+                ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr.s_addr);
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
             if (rc >= 0 && result != NULL) {
