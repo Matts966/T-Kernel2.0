@@ -4,6 +4,7 @@
 #include "wolfmqtt/mqtt_client.h"
 #include "examples/mqttnet.h"
 #include "examples/nbclient/nbclient.h"
+#include "network_sample/net_test.h"
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
@@ -83,7 +84,6 @@ EXPORT INT usermain( void ) {
 	tm_putstring("*** task_b started.\n");
 
 	// Network initialization and test
-	IMPORT	void	net_test(void);
 	net_test();
 
 	t_ctsk.itskpri = 1;
