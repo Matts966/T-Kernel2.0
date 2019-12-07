@@ -606,14 +606,17 @@ static int NetConnect(void *context, const char* host, word16 port,
 
         #ifdef TKERNEL
             char buf[512];
-
-            rc = so_getaddrinfo(host, NULL, &hints, &result, buf, sizeof buf, NULL);
+            bzero(&hints, sizeof hints);
+            hints.ai_family = AF_INET;
+            hints.ai_socktype = SOCK_STREAM;
+            rc = so_getaddrinfo(host, NULL, &hints, &result, buf,
+                sizeof buf, NULL);
             PRINTF("resolv_host: so_getaddrinfo = %d(%d, %d)\n",
                 rc, MERCD(rc), SERCD(rc));
-            if ( rc < 0 || result == NULL ) {
-                PRINTF("[getaddrinfo] FAILED\n");
-                goto exit;
-            }
+            // if ( rc < 0 || result == NULL ) {
+            //     PRINTF("[getaddrinfo] FAILED\n");
+            //     goto exit;
+            // }
 
             sock->addr.sin_port = htons(port);
             sock->addr.sin_family = AF_INET;
