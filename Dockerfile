@@ -49,7 +49,7 @@ RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
         -static -nostdlib -D_T2EX=1 -DT2EX=1 -DT2EX_MM -DT2EX_NO_MD5 \
         -D_TEF_EM1D_ -DTEF_EM1D=1 -DINET -DGATEWAY=1 -DTKERNEL_CHECK_CONST \
         -DNBPFILTER=3 -DNTUN=0 -DNDEBUG -DTKERNEL -D_KERNEL \
-        -Duse_libstr_func_as_std=1 \
+        -Duse_libstr_func_as_std=1 -DWOLFMQTT_DEBUG_SOCKET \
         -T $BD/kernel/sysmain/build_t2ex/tef_em1d/kernel_t2ex-rom.lnk \
         -I$BD/include/sys/sysdepend/tef_em1d \
         -I$BD/t2ex/network/net/src_bsdlib/libc/include \

@@ -92,7 +92,7 @@ SRC_SYS	= usermain.c
 
 # source files for simple command interpreter
 SRC_SYS	+= appl_main.c command.c examples/mqttnet.c examples/nbclient/nbclient.c examples/mqttexample.c
-CFLAGS += -DTKERNEL
+CFLAGS += -DTKERNEL -DWOLFMQTT_DEBUG_SOCKET
 
 # user-level source files
 SRC_USR	=
