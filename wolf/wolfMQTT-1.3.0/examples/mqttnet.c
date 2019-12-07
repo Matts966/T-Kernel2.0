@@ -662,8 +662,13 @@ static int NetConnect(void *context, const char* host, word16 port,
             rc = -1;
 
             /* Create socket */
+        #ifdef TKERNEL
+            sock->fd = SOCK_OPEN(sock->addr.sin_family, type, IPPROTO_TCP);
+            if (sock->fd < 0) {
+        #else
             sock->fd = SOCK_OPEN(sock->addr.sin_family, type, 0);
             if (sock->fd == SOCKET_INVALID) {
+        #endif
                 PRINTF("[SOCK_OPEN] FAILED");
                 goto exit;
             }
@@ -839,7 +844,7 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
 #endif
 
 #ifdef TKERNEL
-    rc = (int)SOCK_SEND(sock->fd, buf, buf_len, MSG_OOB);
+    rc = so_write(sock->fd, buf, buf_len);
     if (rc < 0) {
 #else
     rc = (int)SOCK_SEND(sock->fd, buf, buf_len, 0);
