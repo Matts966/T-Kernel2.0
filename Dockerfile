@@ -59,7 +59,7 @@ RUN cd wolfMQTT-$WOLFMQTT_VERSION && \
     make && make install
 
 # Build user code with cache
-# COPY src $BD/kernel/sysmain/src
+COPY src $BD/kernel/sysmain/src
 COPY wolf/wolfMQTT-$WOLFMQTT_VERSION/examples/ $BD/kernel/sysmain/src/examples/
 
 WORKDIR $BD/kernel/sysmain/build_t2ex/tef_em1d
