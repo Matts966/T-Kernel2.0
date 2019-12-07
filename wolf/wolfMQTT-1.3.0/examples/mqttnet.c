@@ -626,6 +626,7 @@ static int NetConnect(void *context, const char* host, word16 port,
                 result->ai_family,
                 ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr,
                 ((SOCK_ADDR_IN*)result->ai_addr)->sin_addr.s_addr);
+            rc = MQTT_CODE_SUCCESS;
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
             if (rc >= 0 && result != NULL) {
@@ -1041,20 +1042,12 @@ int MqttClientNet_Init(MqttNet* net, MQTTCtx* mqttCtx)
     }
 #endif /* MICROCHIP_MPLAB_HARMONY */
 
-    PRINTF("before if (net) {");
-
     if (net) {
-        PRINTF("after if (net) {");
-
         SocketContext* sockCtx;
 
         XMEMSET(net, 0, sizeof(MqttNet));
 
-        PRINTF("NetConnect: %d", NetConnect);
-
         net->connect = NetConnect;
-
-        PRINTF("net->connect: %d", net->connect);
 
         net->read = NetRead;
         net->write = NetWrite;
