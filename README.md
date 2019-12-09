@@ -9,6 +9,15 @@ To start kernel process in emulator,
 make
 ```
 
+If it fails, you can use remote image by,
+
+```
+docker run -it --rm matts966/tkernel2.0
+```
+
+You can develop by writing `src/usermain.c`.
+The `src` directory is copied as user source code.
+
 ## Requirement
 
 - docker installation
