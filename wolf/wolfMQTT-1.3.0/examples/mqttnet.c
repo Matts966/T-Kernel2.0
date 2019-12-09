@@ -601,16 +601,35 @@ static int NetConnect(void *context, const char* host, word16 port,
             hints.ai_socktype = SOCK_STREAM;
             hints.ai_protocol = IPPROTO_TCP;
 
+            PRINTF("NetConnect: 2");
+
             XMEMSET(&sock->addr, 0, sizeof(sock->addr));
             sock->addr.sin_family = AF_INET;
 
+            PRINTF("NetConnect: 3");
+
         #ifdef TKERNEL
+
+            PRINTF("NetConnect: 4");
+
             char buf[512];
+
+            PRINTF("NetConnect: 5");
+
             bzero(&hints, sizeof hints);
+
+            PRINTF("NetConnect: 6");
+
             hints.ai_family = AF_INET;
             hints.ai_socktype = SOCK_STREAM;
+
+            PRINTF("NetConnect: 7");
+
             rc = so_getaddrinfo(host, NULL, &hints, &result, buf,
                 sizeof buf, NULL);
+
+            PRINTF("NetConnect: 8");
+
             PRINTF("resolv_host: so_getaddrinfo = %d(%d, %d)",
                 rc, MERCD(rc), SERCD(rc));
             if ( rc < 0 || result == NULL ) {
@@ -626,6 +645,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             PRINTF("[getaddrinfo] ipv4?: %d, in_addr: %s",
                 result->ai_family == AF_INET,
                 inet_ntop(AF_INET, &sock->addr.sin_addr, rbuf, sizeof(rbuf)));
+            
             rc = MQTT_CODE_SUCCESS;
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
@@ -680,6 +700,13 @@ static int NetConnect(void *context, const char* host, word16 port,
 
         case SOCK_CONN:
         {
+        #ifdef TKERNEL
+            rc = SOCK_CONNECT(sock->fd, (struct sockaddr*)&sock->addr, sizeof(sock->addr));
+            if (rc < 0) {
+                goto exit;
+            }
+            break;
+        #else
         #ifndef WOLFMQTT_NO_TIMEOUT
             fd_set fdset;
             struct timeval tv;
@@ -717,6 +744,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             #endif
             }
             break;
+        #endif
         }
 
         default:

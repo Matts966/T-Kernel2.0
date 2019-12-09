@@ -558,6 +558,11 @@ disconn:
 
     PRINTF("MQTT Disconnect: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);
+#ifdef TKERNEL
+    if (rc < 0) {
+        goto exit;
+    }
+#endif
     if (rc != MQTT_CODE_SUCCESS) {
         goto disconn;
     }
@@ -583,7 +588,7 @@ exit:
 
 
 /* so overall tests can pull in test function */
-#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY)
+#if !defined(NO_MAIN_DRIVER) && !defined(MICROCHIP_MPLAB_HARMONY) && !defined(TKERNEL)
     #ifdef USE_WINDOWS_API
         #include <windows.h> /* for ctrl handler */
 

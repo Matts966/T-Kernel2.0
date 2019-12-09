@@ -433,6 +433,9 @@ getaddrinfo(const char *hostname, const char *servname,
     const struct addrinfo *hints, struct addrinfo **res, void* buf, size_t bufsz, int* len)
 #endif
 {
+
+	tm_printf("getaddrinfo");
+
 	struct addrinfo sentinel;
 	struct addrinfo *cur;
 	int error = 0;
@@ -446,6 +449,8 @@ getaddrinfo(const char *hostname, const char *servname,
 	/* servname is allowed to be NULL */
 	/* hints is allowed to be NULL */
 	_DIAGASSERT(res != NULL);
+
+	tm_printf("getaddrinfo 2");
 
 	(void)memset(&svd, 0, sizeof(svd));
 	memset(&sentinel, 0, sizeof(sentinel));
@@ -482,12 +487,17 @@ getaddrinfo(const char *hostname, const char *servname,
 		}
 		memcpy(pai, hints, sizeof(*pai));
 
+		tm_printf("getaddrinfo if hints");
+
 		/*
 		 * if both socktype/protocol are specified, check if they
 		 * are meaningful combination.
 		 */
 		if (pai->ai_socktype != ANY && pai->ai_protocol != ANY) {
 			for (ex = explore; ex->e_af >= 0; ex++) {
+
+				tm_printf("getaddrinfo explore");
+
 				if (pai->ai_family != ex->e_af)
 					continue;
 				if (ex->e_socktype == ANY)
@@ -501,6 +511,8 @@ getaddrinfo(const char *hostname, const char *servname,
 			}
 		}
 	}
+
+	tm_printf("getaddrinfo 3");
 
 	/*
 	 * check for special cases.  (1) numeric servname is disallowed if
@@ -532,6 +544,9 @@ getaddrinfo(const char *hostname, const char *servname,
 
 	/* NULL hostname, or numeric hostname */
 	for (ex = explore; ex->e_af >= 0; ex++) {
+
+		tm_printf("getaddrinfo explore 2");
+
 		*pai = ai0;
 
 		/* PF_UNSPEC entries are prepared for DNS queries only */
@@ -568,11 +583,15 @@ getaddrinfo(const char *hostname, const char *servname,
 			    &cur->ai_next, &svd, buf, bufsz, len);
 #endif
 
-		if (error)
+		if (error) {
+			tm_printf("getaddrinfo if error");
 			goto free;
+		}
 
-		while (cur->ai_next)
+		while (cur->ai_next) {
+			tm_printf("getaddrinfo cur->ai_next");
 			cur = cur->ai_next;
+		}
 	}
 
 	/*
@@ -598,6 +617,9 @@ getaddrinfo(const char *hostname, const char *servname,
 	 * outer loop by AFs.
 	 */
 	for (ex = explore; ex->e_af >= 0; ex++) {
+
+		tm_printf("getaddrinfo explore 3");
+
 		*pai = ai0;
 
 		/* require exact match for family field */
@@ -626,9 +648,13 @@ getaddrinfo(const char *hostname, const char *servname,
 		    &svd, buf, bufsz, len);
 #endif
 
-		while (cur && cur->ai_next)
+		while (cur && cur->ai_next) {
+			tm_printf("getaddrinfo while (cur && cur->ai_next)");
 			cur = cur->ai_next;
+		}
 	}
+
+	tm_printf("getaddrinfo XXX");
 
 	/* XXX */
 	if (sentinel.ai_next)
@@ -699,6 +725,8 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	};
 #endif
 
+	tm_printf("explore_fqdn 1");
+
 	_DIAGASSERT(pai != NULL);
 	/* hostname may be NULL */
 	/* servname may be NULL */
@@ -711,6 +739,8 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	 */
 	if (get_portmatch(pai, servname, svd) != 0)
 		return 0;
+
+	tm_printf("explore_fqdn 2");
 
 	switch (nsdispatch(&result, dtab, NSDB_HOSTS, "getaddrinfo",
 			default_dns_files, hostname, pai)) {
@@ -726,6 +756,11 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	case NS_SUCCESS:
 		error = 0;
 		for (cur = result; cur; cur = cur->ai_next) {
+
+			char rbuf[18];
+			tm_printf("\nexplore_fqdn, cur: %s",
+				inet_ntop(AF_INET, cur, rbuf, sizeof(rbuf)));
+
 			GET_PORT(cur, servname, svd);
 			/* canonname should be filled already */
 		}
@@ -737,6 +772,7 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	return 0;
 
 free:
+	tm_printf("explore_fqdn free");
 	if (result)
 		freeaddrinfo(result);
 	return error;
