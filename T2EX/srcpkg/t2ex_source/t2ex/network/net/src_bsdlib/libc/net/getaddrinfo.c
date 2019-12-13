@@ -699,8 +699,6 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	};
 #endif
 
-	tm_printf("explore_fqdn 1");
-
 	_DIAGASSERT(pai != NULL);
 	/* hostname may be NULL */
 	/* servname may be NULL */
@@ -730,11 +728,6 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	case NS_SUCCESS:
 		error = 0;
 		for (cur = result; cur; cur = cur->ai_next) {
-
-			char rbuf[18];
-			tm_printf("\nexplore_fqdn, cur: %s",
-				inet_ntop(AF_INET, cur, rbuf, sizeof(rbuf)));
-
 			GET_PORT(cur, servname, svd);
 			/* canonname should be filled already */
 		}
@@ -746,7 +739,6 @@ explore_fqdn(const struct addrinfo *pai, const char *hostname,
 	return 0;
 
 free:
-	tm_printf("explore_fqdn free");
 	if (result)
 		freeaddrinfo(result);
 	return error;
