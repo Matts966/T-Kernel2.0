@@ -451,8 +451,9 @@ int mqttclient_test(MQTTCtx *mqttCtx)
         prop->data_short = mqttCtx->topic_alias;
     }
 #endif
-
-    rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
+    do {
+        rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
+    } while (rc == MQTT_CODE_CONTINUE);
 
     PRINTF("MQTT Publish: Topic %s, %s (%d)",
         mqttCtx->publish.topic_name,
