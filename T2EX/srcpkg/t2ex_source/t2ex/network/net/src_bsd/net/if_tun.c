@@ -311,6 +311,7 @@ tun_clone_destroy(struct ifnet *ifp)
 	int s, zombie = 0;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	simple_lock(&tun_softc_lock);
 	simple_lock(&tp->tun_lock);
 	LIST_REMOVE(tp, tun_list);
@@ -333,6 +334,7 @@ tun_clone_destroy(struct ifnet *ifp)
 
 	simple_unlock(&tp->tun_lock);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 #ifndef T2EX
 	if (tp->tun_flags & TUN_ASYNC && tp->tun_pgid)
@@ -377,6 +379,7 @@ tunopen(dev_t dev, int flag, int mode, struct lwp *l)
 #endif /* !T2EX */
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 
 	if (tp == NULL) {
@@ -407,6 +410,7 @@ out:
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 
@@ -423,6 +427,7 @@ tunclose(dev_t dev, int flag, int mode,
 	struct ifnet	*ifp;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if ((tp = tun_find_zunit(minor(dev))) != NULL) {
 		/* interface was "destroyed" before the close */
 		seldestroy(&tp->tun_rsel);
@@ -470,6 +475,7 @@ tunclose(dev_t dev, int flag, int mode,
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (0);
 }
 
@@ -536,6 +542,7 @@ tun_ioctl(struct ifnet *ifp, u_long cmd, void *data)
 	struct ifreq *ifr = data;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	simple_lock(&tp->tun_lock);
 
 	switch (cmd) {
@@ -587,6 +594,7 @@ tun_ioctl(struct ifnet *ifp, u_long cmd, void *data)
 
 	simple_unlock(&tp->tun_lock);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 
@@ -607,6 +615,7 @@ tun_output(struct ifnet *ifp, struct mbuf *m0, const struct sockaddr *dst,
 	ALTQ_DECL(struct altq_pktattr pktattr;)
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	simple_lock(&tp->tun_lock);
 	TUNDEBUG ("%s: tun_output\n", ifp->if_xname);
 
@@ -698,6 +707,7 @@ tun_output(struct ifnet *ifp, struct mbuf *m0, const struct sockaddr *dst,
 out:
 	simple_unlock(&tp->tun_lock);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (0);
 }
 
@@ -735,6 +745,7 @@ tunioctl(dev_t dev, u_long cmd, void *data, int flag, struct lwp *l)
 	int s, error = 0;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 
 	/* interface was "destroyed" already */
@@ -829,6 +840,7 @@ out:
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 
@@ -845,6 +857,7 @@ tunread(dev_t dev, struct uio *uio, int ioflag)
 	int		error = 0, len, s, index;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 
 	/* interface was "destroyed" already */
@@ -899,6 +912,7 @@ tunread(dev_t dev, struct uio *uio, int ioflag)
 
 	simple_unlock(&tp->tun_lock);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/* Copy the mbuf chain */
 	while (m0 && uio->uio_resid > 0 && error == 0) {
@@ -922,6 +936,7 @@ out:
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 
@@ -940,6 +955,7 @@ tunwrite(dev_t dev, struct uio *uio, int ioflag)
 	uint32_t	family;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 
 	/* interface was "destroyed" already */
@@ -951,6 +967,7 @@ tunwrite(dev_t dev, struct uio *uio, int ioflag)
 	/* Unlock until we've got the data */
 	simple_unlock(&tp->tun_lock);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	ifp = &tp->tun_if;
 
@@ -1051,6 +1068,7 @@ tunwrite(dev_t dev, struct uio *uio, int ioflag)
 #endif
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	simple_lock(&tp->tun_lock);
 	if ((tp->tun_flags & TUN_INITED) == 0) {
 		/* Interface was destroyed */
@@ -1073,6 +1091,7 @@ out:
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 out0:
 	return (error);
 }
@@ -1121,6 +1140,7 @@ tunpoll(dev_t dev, int events, struct lwp *l)
 	int		s, revents = 0;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 
 	/* interface was "destroyed" already */
@@ -1148,6 +1168,7 @@ tunpoll(dev_t dev, int events, struct lwp *l)
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (revents);
 }
 
@@ -1159,8 +1180,10 @@ filt_tunrdetach(struct knote *kn)
 	int s;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	SLIST_REMOVE(&tp->tun_rsel.sel_klist, kn, knote, kn_selnext);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 static int
@@ -1172,9 +1195,11 @@ filt_tunread(struct knote *kn, long hint)
 	int s;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	IF_POLL(&ifp->if_snd, m);
 	if (m == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 
@@ -1182,6 +1207,7 @@ filt_tunread(struct knote *kn, long hint)
 		kn->kn_data += m->m_len;
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (1);
 }
 
@@ -1199,6 +1225,7 @@ tunkqfilter(dev_t dev, struct knote *kn)
 	int rv = 0, s;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	tp = tun_find_unit(dev);
 	if (tp == NULL)
 		goto out_nolock;
@@ -1227,6 +1254,7 @@ out:
 	simple_unlock(&tp->tun_lock);
 out_nolock:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (rv);
 }
 #else

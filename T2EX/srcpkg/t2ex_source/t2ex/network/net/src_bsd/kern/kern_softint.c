@@ -542,6 +542,7 @@ softint_schedule(void *arg)
 	 * If the LWP is completely idle, then make it run.
 	 */
 	s = splhigh();
+	tm_printf("%s, splhigh() s=%d\n", __func__, s);
 	if ((sh->sh_flags & SOFTINT_PENDING) == 0) {
 		si = sh->sh_isr;
 		sh->sh_flags |= SOFTINT_PENDING;
@@ -552,6 +553,7 @@ softint_schedule(void *arg)
 		}
 	}
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 /*
@@ -596,6 +598,7 @@ softint_execute(softint_t *si, lwp_t *l, int s)
 		KASSERT((sh->sh_flags & SOFTINT_ACTIVE) == 0);
 		sh->sh_flags ^= (SOFTINT_PENDING | SOFTINT_ACTIVE);
 		splx(s);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		/* Run the handler. */
 		if (sh->sh_flags & SOFTINT_MPSAFE) {
@@ -609,7 +612,8 @@ softint_execute(softint_t *si, lwp_t *l, int s)
 		}
 		(*sh->sh_func)(sh->sh_arg);
 	
-		(void)splhigh();
+		s = (void)splhigh();
+		tm_printf("%s, splhigh() s=%d\n", __func__, s);
 		KASSERT((sh->sh_flags & SOFTINT_ACTIVE) != 0);
 		sh->sh_flags ^= SOFTINT_ACTIVE;
 	}
@@ -734,9 +738,11 @@ softint_thread(void *cookie)
 		 * higher level).
 		 */
 		s = splhigh();
+		tm_printf("%s, splhigh() s=%d\n", __func__, s);
 		l->l_cpu->ci_data.cpu_softints &= ~si->si_machdep;
 		softint_execute(si, l, s);
 		splx(s);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		lwp_lock(l);
 		l->l_stat = LSIDL;
@@ -801,6 +807,7 @@ softint_overlay(void)
 
 	/* Arrange to elevate priority if the LWP blocks. */
 	s = splhigh();
+	tm_printf("%s, splhigh() s=%d\n", __func__, s);
 	obase = l->l_kpribase;
 	l->l_kpribase = PRI_KERNEL_RT;
 	oflag = l->l_pflag;
@@ -830,6 +837,7 @@ softint_overlay(void)
 	l->l_pflag = oflag;
 	l->l_kpribase = obase;
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 #endif
 
@@ -905,6 +913,7 @@ softint_dispatch(lwp_t *pinned, int s)
 	l->l_stat = LSIDL;
 	if (l->l_switchto == NULL) {
 		splx(s);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 		pmap_deactivate(l);
 		lwp_exit_switchaway(l);
 		/* NOTREACHED */

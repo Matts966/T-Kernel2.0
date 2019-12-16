@@ -553,6 +553,7 @@ tkn_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 	    (int)IOCGROUP(cmd), (int)(cmd & 0xFF));
 
 	int s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	int error = 0;
 	struct ifreq  *ifr = (struct ifreq *)data;
@@ -577,6 +578,7 @@ tkn_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 	}
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 
@@ -686,12 +688,14 @@ tkn_nif_attach(struct tkn_nif_info *nif_info)
 	}
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	nif_info->nif_next = tkn_nif_mng.nifm_list;
 	tkn_nif_mng.nifm_list = nif_info;
 	tkn_nif_mng.nifm_nifmax++;
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/* Start a driver event task. */
 #ifdef DEBUG
@@ -740,11 +744,13 @@ tkn_nif_detach(struct tkn_nif_info *nif_info)
 	}
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	/* delete message buffer (and let driver event task exit and deleted) */
 	tk_del_mbf(nif_info->nif_msg_id);
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return E_OK;
 
@@ -836,6 +842,7 @@ tkn_init(struct ifnet *ifp)
 
 	const ID oldres = device_enter(nifp);
 	const INT s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	const ID dev = er = device_open(nifp);
 	if (er < 0) {
@@ -885,6 +892,7 @@ err_device_open:
 
 exit:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	device_leave(nifp, oldres);
 	return er;
 }
@@ -1003,6 +1011,7 @@ tkn_stop(struct ifnet *ifp, int disable)
 	ER er;
 
 	INT s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	// down the MII.
 	//mii_down(&xxx);
@@ -1013,6 +1022,7 @@ tkn_stop(struct ifnet *ifp, int disable)
 	ifp->if_timer = 0;
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 static void
@@ -1104,8 +1114,10 @@ err_no_header_memory:
 	device_attach_rxbufptr(nifp, eb);
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	ifp->if_ierrors++;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return;
 }
@@ -1154,8 +1166,10 @@ driver_task(INT code, VP arg)
 
 		if (ne.len == 0) {
 			s = splnet();
+			tm_printf("%s, splnet() s=%d\n", __func__, s);
 			cont = tkn_nif_output(nif_infop);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		} else if (ne.len > 0) {
 			if (ne.buf == NULL) {
@@ -1163,8 +1177,10 @@ driver_task(INT code, VP arg)
 				      __func__);
 			}
 			s = splnet();
+			tm_printf("%s, splnet() s=%d\n", __func__, s);
 			tkn_nif_input(nif_infop, &ne);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		} else {
 			panic("\n[TKN %s] unexpected packet size %d",
@@ -1177,8 +1193,10 @@ bad:
 
 out:
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	nif_cleanup(nif_infop);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	tk_exd_tsk();
 }

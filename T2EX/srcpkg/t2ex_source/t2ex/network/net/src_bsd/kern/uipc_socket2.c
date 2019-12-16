@@ -607,9 +607,11 @@ sb_max_set(u_long new_sbmax)
 		return (EINVAL);
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	sb_max = new_sbmax;
 	sb_max_adj = (u_quad_t)new_sbmax * MCLBYTES / (MSIZE + MCLBYTES);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return (0);
 }

@@ -584,6 +584,7 @@ m_reclaim(void *arg, int flags)
 
 	KERNEL_LOCK(1, NULL);
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	DOMAIN_FOREACH(dp) {
 		for (pr = dp->dom_protosw;
 		     pr < dp->dom_protoswNPROTOSW; pr++)
@@ -595,6 +596,7 @@ m_reclaim(void *arg, int flags)
 			(*ifp->if_drain)(ifp);
 	}
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	mbstat.m_drain++;
 	KERNEL_UNLOCK_ONE(NULL);
 }
@@ -1782,10 +1784,12 @@ mbstat_type_add(int type, int diff)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mb = percpu_getref(mbstat_percpu);
 	mb->m_mtypes[type] += diff;
 	percpu_putref(mbstat_percpu);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #if defined(MBUFTRACE)
@@ -1834,10 +1838,12 @@ mowner_init(struct mbuf *m, int type)
 
 	m->m_owner = mo = &unknown_mowners[type];
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mc = percpu_getref(mo->mo_counters);
 	mc->mc_counter[MOWNER_COUNTER_CLAIMS]++;
 	percpu_putref(mo->mo_counters);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 void
@@ -1848,6 +1854,7 @@ mowner_ref(struct mbuf *m, int flags)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mc = percpu_getref(mo->mo_counters);
 	if ((flags & M_EXT) != 0)
 		mc->mc_counter[MOWNER_COUNTER_EXT_CLAIMS]++;
@@ -1855,6 +1862,7 @@ mowner_ref(struct mbuf *m, int flags)
 		mc->mc_counter[MOWNER_COUNTER_CLUSTER_CLAIMS]++;
 	percpu_putref(mo->mo_counters);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 void
@@ -1865,6 +1873,7 @@ mowner_revoke(struct mbuf *m, bool all, int flags)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mc = percpu_getref(mo->mo_counters);
 	if ((flags & M_EXT) != 0)
 		mc->mc_counter[MOWNER_COUNTER_EXT_RELEASES]++;
@@ -1874,6 +1883,7 @@ mowner_revoke(struct mbuf *m, bool all, int flags)
 		mc->mc_counter[MOWNER_COUNTER_RELEASES]++;
 	percpu_putref(mo->mo_counters);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	if (all)
 		m->m_owner = &revoked_mowner;
 }
@@ -1886,6 +1896,7 @@ mowner_claim(struct mbuf *m, struct mowner *mo)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mc = percpu_getref(mo->mo_counters);
 	mc->mc_counter[MOWNER_COUNTER_CLAIMS]++;
 	if ((flags & M_EXT) != 0)
@@ -1894,6 +1905,7 @@ mowner_claim(struct mbuf *m, struct mowner *mo)
 		mc->mc_counter[MOWNER_COUNTER_CLUSTER_CLAIMS]++;
 	percpu_putref(mo->mo_counters);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	m->m_owner = mo;
 }
 

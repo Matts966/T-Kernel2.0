@@ -127,10 +127,12 @@ tkn_finish(void)
 	ret |= loopdetach(1);
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	ret |= if_detachdomain();
 	ret |= domainfinish();
 	ret |= iffinish();
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	ret |= tkn_delete_task();
 
@@ -284,6 +286,7 @@ tkn_initialize(void)
 	 * Initialize protocols
 	 */
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	ifinit();
 	ret = domaininit();
 	if ( ret != 0 ) {
@@ -292,6 +295,7 @@ tkn_initialize(void)
 	}
 	if_attachdomain();
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/* Configure the loopback device */
 	log(LOG_INFO, "[TKN] attach loopback: lo0\n");
@@ -342,11 +346,13 @@ err_ret21:
 	loopdetach(1);
 err_ret20:
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if_detachdomain();
 	domainfinish();
 err_ret19:
 	iffinish();
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	tkn_delete_task();
 err_ret18:
 	selsysfinish(NULL);

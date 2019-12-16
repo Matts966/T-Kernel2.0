@@ -601,6 +601,7 @@ encap_attach(int af, int proto,
 #endif
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	/* sanity check on args */
 	error = encap_afcheck(af, sp, dp);
 	if (error)
@@ -699,6 +700,7 @@ encap_attach(int af, int proto,
 
 	error = 0;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return ep;
 
 gc:
@@ -710,6 +712,7 @@ gc:
 		free(ep, M_NETADDR);
 fail:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return NULL;
 }
 
@@ -723,6 +726,7 @@ encap_attach_func(int af, int proto,
 	int s;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	/* sanity check on args */
 	if (!func) {
 		error = EINVAL;
@@ -752,10 +756,12 @@ encap_attach_func(int af, int proto,
 
 	error = 0;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return ep;
 
 fail:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return NULL;
 }
 #endif

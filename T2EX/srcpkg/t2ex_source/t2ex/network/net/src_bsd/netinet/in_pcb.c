@@ -287,8 +287,10 @@ in_pcballoc(struct socket *so, void *v)
 #endif
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	inp = pool_get(&inpcb_pool, PR_NOWAIT);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	if (inp == NULL)
 		return (ENOBUFS);
 	bzero((void *)inp, sizeof(*inp));
@@ -300,19 +302,23 @@ in_pcballoc(struct socket *so, void *v)
 	error = ipsec_init_pcbpolicy(so, &inp->inp_sp);
 	if (error != 0) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		pool_put(&inpcb_pool, inp);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return error;
 	}
 #endif
 	so->so_pcb = inp;
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	CIRCLEQ_INSERT_HEAD(&table->inpt_queue, &inp->inp_head,
 	    inph_queue);
 	LIST_INSERT_HEAD(INPCBHASH_PORT(table, inp->inp_lport), &inp->inp_head,
 	    inph_lhash);
 	in_pcbstate(inp, INP_ATTACHED);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (0);
 }
 
@@ -615,12 +621,14 @@ in_pcbdetach(void *v)
 	rtcache_free(&inp->inp_route);
 	ip_freemoptions(inp->inp_moptions);
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	in_pcbstate(inp, INP_ATTACHED);
 	LIST_REMOVE(&inp->inp_head, inph_lhash);
 	CIRCLEQ_REMOVE(&inp->inp_table->inpt_queue, &inp->inp_head,
 	    inph_queue);
 	pool_put(&inpcb_pool, inp);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	sofree(so);			/* drops the socket's lock */
 	mutex_enter(softnet_lock);	/* reacquire the softnet_lock */
 }

@@ -883,6 +883,7 @@ in_ifinit(struct ifnet *ifp, struct in_ifaddr *ia,
 	u_int32_t i;
 	struct sockaddr_in oldaddr;
 	int s = splnet(), flags = RTF_UP, error;
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	if (sin == NULL)
 		sin = &ia->ia_addr;
@@ -905,6 +906,7 @@ in_ifinit(struct ifnet *ifp, struct in_ifaddr *ia,
 	    (error = (*ifp->if_ioctl)(ifp, SIOCSIFADDR, (void *)ia)))
 		goto bad;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	if (scrub) {
 		ia->ia_ifa.ifa_addr = sintosa(&oldaddr);
 		in_ifscrub(ifp, ia);
@@ -965,6 +967,7 @@ in_ifinit(struct ifnet *ifp, struct in_ifaddr *ia,
 	return (error);
 bad:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	LIST_REMOVE(ia, ia_hash);
 	ia->ia_addr = oldaddr;
 	if (ia->ia_addr.sin_family == AF_INET)
@@ -1136,6 +1139,7 @@ in_addmulti(struct in_addr *ap, struct ifnet *ifp)
 	struct in_multi *inm;
 	struct ifreq ifr;
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	/*
 	 * See if address already in list.
@@ -1154,6 +1158,7 @@ in_addmulti(struct in_addr *ap, struct ifnet *ifp)
 		inm = pool_get(&inmulti_pool, PR_NOWAIT);
 		if (inm == NULL) {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return (NULL);
 		}
 		inm->inm_addr = *ap;
@@ -1173,6 +1178,7 @@ in_addmulti(struct in_addr *ap, struct ifnet *ifp)
 			LIST_REMOVE(inm, inm_list);
 			pool_put(&inmulti_pool, inm);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return (NULL);
 		}
 		/*
@@ -1182,11 +1188,13 @@ in_addmulti(struct in_addr *ap, struct ifnet *ifp)
 			LIST_REMOVE(inm, inm_list);
 			pool_put(&inmulti_pool, inm);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return (NULL);
 		}
 		in_multientries++;
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (inm);
 }
 
@@ -1199,6 +1207,7 @@ in_delmulti(struct in_multi *inm)
 	struct sockaddr_in sin;
 	struct ifreq ifr;
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if (--inm->inm_refcount == 0) {
 		/*
@@ -1222,4 +1231,5 @@ in_delmulti(struct in_multi *inm)
 		pool_put(&inmulti_pool, inm);
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }

@@ -329,6 +329,7 @@ rtalloc1(const struct sockaddr *dst, int report)
 	struct rtentry *newrt = NULL;
 	struct rt_addrinfo info;
 	int  s = splsoftnet(), err = 0, msgtype = RTM_MISS;
+	tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if (rnh && (rn = rnh->rnh_matchaddr(dst, rnh)) &&
 	    ((rn->rn_flags & RNF_ROOT) == 0)) {
@@ -368,6 +369,7 @@ rtalloc1(const struct sockaddr *dst, int report)
 		}
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return newrt;
 }
 
@@ -689,6 +691,7 @@ int
 rtrequest1(int req, struct rt_addrinfo *info, struct rtentry **ret_nrt)
 {
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	int error = 0;
 	struct rtentry *rt, *crt;
 	struct radix_node *rn;
@@ -849,6 +852,7 @@ rtrequest1(int req, struct rt_addrinfo *info, struct rtentry **ret_nrt)
 	}
 bad:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 
@@ -1162,8 +1166,10 @@ rt_timer_add(struct rtentry *rt,
 #endif
 	} else {
 		s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 		r = pool_get(&rttimer_pool, PR_NOWAIT);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (r == NULL)
 			return ENOBUFS;
 	}
@@ -1190,6 +1196,7 @@ rt_timer_timer(void *arg)
 	int s;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	LIST_FOREACH(rtq, &rttimer_queue_head, rtq_link) {
 		while ((r = TAILQ_FIRST(&rtq->rtq_head)) != NULL &&
 		    (r->rtt_time + rtq->rtq_timeout) < time_uptime) {
@@ -1206,6 +1213,7 @@ rt_timer_timer(void *arg)
 		}
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	callout_reset(&rt_timer_ch, hz, rt_timer_timer, NULL);
 }

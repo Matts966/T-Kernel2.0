@@ -344,14 +344,18 @@ ipflow_free(struct ipflow *ipf)
 	 * network IPL.
 	 */
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	IPFLOW_REMOVE(ipf);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	ipflow_addstats(ipf);
 	rtcache_free(&ipf->ipf_ro);
 	ipflow_inuse--;
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	pool_put(&ipflow_pool, ipf);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 static struct ipflow *
@@ -389,8 +393,10 @@ ipflow_reap(bool just_one)
 		 * Remove the entry from the flow table.
 		 */
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IPFLOW_REMOVE(ipf);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		ipflow_addstats(ipf);
 		rtcache_free(&ipf->ipf_ro);
 		if (just_one)
@@ -463,8 +469,10 @@ ipflow_create(const struct route *ro, struct mbuf *m)
 			ipf = ipflow_reap(true);
 		} else {
 			s = splnet();
+			tm_printf("%s, splnet() s=%d\n", __func__, s);
 			ipf = pool_get(&ipflow_pool, PR_NOWAIT);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			if (ipf == NULL)
 				return;
 			ipflow_inuse++;
@@ -472,8 +480,10 @@ ipflow_create(const struct route *ro, struct mbuf *m)
 		memset(ipf, 0, sizeof(*ipf));
 	} else {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IPFLOW_REMOVE(ipf);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		ipflow_addstats(ipf);
 		rtcache_free(&ipf->ipf_ro);
 		ipf->ipf_uses = ipf->ipf_last_uses = 0;
@@ -494,8 +504,10 @@ ipflow_create(const struct route *ro, struct mbuf *m)
 	 */
 	hash = ipflow_hash(ip);
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	IPFLOW_INSERT(&ipflowtable[hash], ipf);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifndef T2EX
@@ -507,6 +519,7 @@ ipflow_invalidate_all(int new_size)
 
 	error = 0;
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	for (ipf = LIST_FIRST(&ipflowlist); ipf != NULL; ipf = next_ipf) {
 		next_ipf = LIST_NEXT(ipf, ipf_list);
 		ipflow_free(ipf);
@@ -515,6 +528,7 @@ ipflow_invalidate_all(int new_size)
 	if (new_size)
 		error = ipflow_init(new_size);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return error;
 }

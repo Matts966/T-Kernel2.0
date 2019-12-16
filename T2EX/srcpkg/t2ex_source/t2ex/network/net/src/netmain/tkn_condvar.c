@@ -298,10 +298,12 @@ LOCAL int tkn_docvwait(kcondvar_t *cv, kmutex_t *mtx, int ticks, bool catch)
 		UnlockTKN();
 
 		oldspl = tkn_spl_unlock(IPL_NONE);
+		tm_printf("%s, tkn_spl_unlock() s=%d\n", __func__, IPL_NONE);
 
 		ercd = tk_wai_flg(flgid, ptn, TWF_ANDW | TWF_BITCLR, &flgptn, ticks);
 
 		s = tkn_spl_lock(oldspl);
+		tm_printf("%s, tkn_spl_lock() s=%d\n", __func__, oldspl);
 
 		LockTKN();
 		if ( mtx->type == MUTEX_SPIN ) {

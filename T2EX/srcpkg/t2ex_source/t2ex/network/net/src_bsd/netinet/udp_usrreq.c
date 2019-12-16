@@ -1092,6 +1092,7 @@ udp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 	family = so->so_proto->pr_domain->dom_family;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	switch (family) {
 #ifdef INET
 	case PF_INET:
@@ -1160,6 +1161,7 @@ udp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 
 end:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 
@@ -1259,6 +1261,7 @@ udp_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		    (struct ifnet *)control, l));
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if (req == PRU_PURGEIF) {
 		mutex_enter(softnet_lock);
@@ -1267,6 +1270,7 @@ udp_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		in_pcbpurgeif(&udbtable, (struct ifnet *)control);
 		mutex_exit(softnet_lock);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 
@@ -1392,6 +1396,7 @@ udp_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		 * stat: don't bother with a blocksize.
 		 */
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 
 	case PRU_RCVOOB:
@@ -1418,6 +1423,7 @@ udp_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 
 release:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 

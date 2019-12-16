@@ -457,6 +457,7 @@ if_activate_sadl(struct ifnet *ifp, struct ifaddr *ifa,
 
 	if_sadl_setrefs(ifp, ifa);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	rt_ifmsg(ifp);
 }
 
@@ -487,6 +488,7 @@ if_free_sadl(struct ifnet *ifp)
 
 	if_deactivate_sadl(ifp);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 /*
@@ -651,6 +653,7 @@ if_attachdomain(void)
 	IFNET_FOREACH(ifp)
 		if_attachdomain1(ifp);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 void
@@ -670,6 +673,7 @@ if_attachdomain1(struct ifnet *ifp)
 	}
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifdef T2EX
@@ -683,6 +687,7 @@ if_detachdomain(void)
 	IFNET_FOREACH(ifp)
 		if_detachdomain1(ifp);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return 0;
 }
@@ -703,6 +708,7 @@ if_detachdomain1(struct ifnet *ifp)
 	}
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return 0;
 }
@@ -733,6 +739,7 @@ if_deactivate(struct ifnet *ifp)
 	ifp->if_snd.ifq_maxlen = 0;
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 #endif
 
@@ -917,6 +924,7 @@ again:
 	}
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 static void
@@ -1459,6 +1467,7 @@ if_slowtimo(void *arg)
 			(*ifp->if_watchdog)(ifp);
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	callout_reset(&if_slowtimo_ch, hz / IFNET_SLOWHZ, if_slowtimo, NULL);
 }
 
@@ -1618,11 +1627,13 @@ ifioctl_common(struct ifnet *ifp, u_long cmd, void *data)
 			s = splnet();
 			if_down(ifp);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		}
 		if (ifr->ifr_flags & IFF_UP && (ifp->if_flags & IFF_UP) == 0) {
 			s = splnet();
 			if_up(ifp);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		}
 		ifp->if_flags = (ifp->if_flags & IFF_CANTCHANGE) |
 			(ifr->ifr_flags &~ IFF_CANTCHANGE);
@@ -1855,6 +1866,7 @@ ifioctl(struct socket *so, u_long cmd, void *data, struct lwp *l)
 			int s = splnet();
 			in6_if_up(ifp);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		}
 #endif
 	}
@@ -1998,6 +2010,7 @@ ifq_enqueue(struct ifnet *ifp, struct mbuf *m
 		(*ifp->if_start)(ifp);
 out:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 

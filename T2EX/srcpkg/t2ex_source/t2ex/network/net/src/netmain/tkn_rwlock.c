@@ -107,6 +107,7 @@ void tkn_rw_destroy(krwlock_t *rw)
 		tk_del_sem(rw->semid);
 		if ( rw->oldspl >= 0 ) {
 			splx(rw->oldspl);
+tm_printf("%s, splx() s=%d\n", __func__, rw->oldspl);
 		}
 	}
 
@@ -127,6 +128,7 @@ LOCAL int tkn_rw_enter_tmo(krwlock_t *rw, const krw_t op, TMO tmo)
 	int count = is_writer ? MAX_READERS : 1;
 
 	rw->oldspl = splvm();
+	tm_printf("%s, splvm() s=%d\n", __func__, rw->oldspl);
 
 	ER ercd = tk_wai_sem(rw->semid, count, tmo);
 	if ( ercd == E_OK ) {
@@ -161,6 +163,7 @@ void tkn_rw_exit(krwlock_t *rw)
 
 	if ( s >= 0 ) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	}
 
 	UnlockTKN();

@@ -120,6 +120,7 @@ rti_find(struct ifnet *ifp)
 {
 	struct router_info *rti;
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	LIST_FOREACH(rti, &rti_head, rti_link) {
 		if (rti->rti_ifp == ifp)
@@ -129,12 +130,14 @@ rti_find(struct ifnet *ifp)
 	rti = pool_get(&igmp_rti_pool, PR_NOWAIT);
 	if (rti == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return NULL;
 	}
 	rti->rti_ifp = ifp;
 	rti->rti_type = IGMP_v2_ROUTER;
 	LIST_INSERT_HEAD(&rti_head, rti, rti_link);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (rti);
 }
 
@@ -462,6 +465,7 @@ igmp_joingroup(struct in_multi *inm)
 {
 	int report_type;
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	inm->inm_state = IGMP_IDLE_MEMBER;
 
@@ -470,6 +474,7 @@ igmp_joingroup(struct in_multi *inm)
 		report_type = rti_fill(inm);
 		if (report_type == 0) {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return ENOMEM;
 		}
 		igmp_sendpkt(inm, report_type);
@@ -480,6 +485,7 @@ igmp_joingroup(struct in_multi *inm)
 	} else
 		inm->inm_timer = 0;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return 0;
 }
 

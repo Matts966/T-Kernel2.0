@@ -364,12 +364,15 @@ tcp_reass_lock_try(struct tcpcb *tp)
 	 * mbuf allocation.
 	 */
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	if (tp->t_flags & TF_REASSEMBLING) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 	tp->t_flags |= TF_REASSEMBLING;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (1);
 }
 
@@ -379,8 +382,10 @@ tcp_reass_unlock(struct tcpcb *tp)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	tp->t_flags &= ~TF_REASSEMBLING;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifdef DIAGNOSTIC

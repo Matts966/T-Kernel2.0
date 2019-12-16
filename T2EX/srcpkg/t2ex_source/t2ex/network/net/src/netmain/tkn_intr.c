@@ -103,6 +103,7 @@ static void spl_trampo(INT arg, VP vp)
 		}
 
 		s = tkn_spl_lock(level);
+		// tm_printf("%s, tkn_spl_lock() s=%d\n", __func__, level);
 		if ( mpsafe ) {
 			KERNEL_LOCK(1, lwp);
 			hand(p_arg);
@@ -111,6 +112,7 @@ static void spl_trampo(INT arg, VP vp)
 			hand(p_arg);
 		}
 		tkn_spl_unlock(s);
+		// tm_printf("%s, tkn_spl_unlock() s=%d\n", __func__, s);
 	}
 	/* Never reach here. */
 	return;

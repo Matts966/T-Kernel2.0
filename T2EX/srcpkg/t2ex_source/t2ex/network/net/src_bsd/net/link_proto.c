@@ -153,6 +153,7 @@ link_control(struct socket *so, unsigned long cmd, void *data,
 		error = 0;
 
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 		IFADDR_FOREACH(ifa, ifp) {
 			if (sockaddr_cmp(&u.sa, ifa->ifa_addr) == 0)
@@ -215,6 +216,7 @@ link_control(struct socket *so, unsigned long cmd, void *data,
 			break;
 		}
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (error != ENETRESET)
 			return error;
 		else if ((ifp->if_flags & IFF_RUNNING) != 0)

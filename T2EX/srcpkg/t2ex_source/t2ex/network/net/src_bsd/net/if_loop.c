@@ -379,9 +379,11 @@ looutput(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 		*(mtod(m, uint32_t *)) = dst->sa_family;
 
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IFQ_ENQUEUE(&ifp->if_snd, m, &pktattr, error);
 		(*ifp->if_start)(ifp);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (error);
 	}
 #endif /* ALTQ */
@@ -430,10 +432,12 @@ looutput(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 		return (EAFNOSUPPORT);
 	}
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (IF_QFULL(ifq)) {
 		IF_DROP(ifq);
 		m_freem(m);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (ENOBUFS);
 	}
 	IF_ENQUEUE(ifq, m);
@@ -441,6 +445,7 @@ looutput(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	ifp->if_ipackets++;
 	ifp->if_ibytes += m->m_pkthdr.len;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (0);
 }
 
@@ -502,9 +507,11 @@ lostart(struct ifnet *ifp)
 		}
 
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		if (IF_QFULL(ifq)) {
 			IF_DROP(ifq);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			m_freem(m);
 			return;
 		}
@@ -513,6 +520,7 @@ lostart(struct ifnet *ifp)
 		ifp->if_ipackets++;
 		ifp->if_ibytes += m->m_pkthdr.len;
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	}
 }
 #endif /* ALTQ */

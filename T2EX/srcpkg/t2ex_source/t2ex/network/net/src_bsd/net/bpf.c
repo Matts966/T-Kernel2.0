@@ -500,12 +500,14 @@ bpf_close(struct file *fp)
 #endif
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (d->bd_state == BPF_WAITING)
 		callout_stop(&d->bd_callout);
 	d->bd_state = BPF_IDLE;
 	if (d->bd_bif)
 		bpf_detachd(d);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	bpf_freed(d);
 	mutex_enter(&bpf_mtx);
 	LIST_REMOVE(d, bd_list);
@@ -553,6 +555,7 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 
 	KERNEL_LOCK(1, NULL);
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (d->bd_state == BPF_WAITING)
 		callout_stop(&d->bd_callout);
 	timed_out = (d->bd_state == BPF_TIMED_OUT);
@@ -567,6 +570,7 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 		if (fp->f_flag & FNONBLOCK) {
 			if (d->bd_slen == 0) {
 				splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 				KERNEL_UNLOCK_ONE(NULL);
 				return (EWOULDBLOCK);
 			}
@@ -588,6 +592,7 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 				d->bd_rtout);
 		if (error == EINTR || error == ERESTART) {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			KERNEL_UNLOCK_ONE(NULL);
 			return (error);
 		}
@@ -607,6 +612,7 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 
 			if (d->bd_slen == 0) {
 				splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 				KERNEL_UNLOCK_ONE(NULL);
 				return (0);
 			}
@@ -620,6 +626,7 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 	 * At this point, we know we have something in the hold slot.
 	 */
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/*
 	 * Move data from hold buffer into user space.
@@ -629,11 +636,13 @@ bpf_read(struct file *fp, off_t *offp, struct uio *uio,
 	error = uiomove(d->bd_hbuf, d->bd_hlen, uio);
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	d->bd_fbuf = d->bd_hbuf;
 	d->bd_hbuf = 0;
 	d->bd_hlen = 0;
 done:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	KERNEL_UNLOCK_ONE(NULL);
 	return (error);
 }
@@ -670,12 +679,14 @@ bpf_timed_out(void *arg)
 	int s;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (d->bd_state == BPF_WAITING) {
 		d->bd_state = BPF_TIMED_OUT;
 		if (d->bd_slen != 0)
 			bpf_wakeup(d);
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 
@@ -722,8 +733,10 @@ bpf_write(struct file *fp, off_t *offp, struct uio *uio,
 		dst.ss_family = pseudo_AF_HDRCMPLT;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	error = (*ifp->if_output)(ifp, m, (struct sockaddr *) &dst, NULL);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	KERNEL_UNLOCK_ONE(NULL);
 	/*
 	 * The driver frees the mbuf.
@@ -783,10 +796,12 @@ bpf_ioctl(struct file *fp, u_long cmd, void *addr)
 #endif
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (d->bd_state == BPF_WAITING)
 		callout_stop(&d->bd_callout);
 	d->bd_state = BPF_IDLE;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	switch (cmd) {
 
@@ -802,10 +817,12 @@ bpf_ioctl(struct file *fp, u_long cmd, void *addr)
 			int n;
 
 			s = splnet();
+			tm_printf("%s, splnet() s=%d\n", __func__, s);
 			n = d->bd_slen;
 			if (d->bd_hbuf)
 				n += d->bd_hlen;
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 			*(int *)addr = n;
 			break;
@@ -847,8 +864,10 @@ bpf_ioctl(struct file *fp, u_long cmd, void *addr)
 	 */
 	case BIOCFLUSH:
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		reset_d(d);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		break;
 
 	/*
@@ -863,12 +882,14 @@ bpf_ioctl(struct file *fp, u_long cmd, void *addr)
 			break;
 		}
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		if (d->bd_promisc == 0) {
 			error = ifpromisc(d->bd_bif->bif_ifp, 1);
 			if (error == 0)
 				d->bd_promisc = 1;
 		}
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		break;
 
 	/*
@@ -1054,9 +1075,11 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp)
 		if (fp->bf_len != 0)
 			return (EINVAL);
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		d->bd_filter = 0;
 		reset_d(d);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (old != 0)
 			free(old, M_DEVBUF);
 		return (0);
@@ -1075,9 +1098,11 @@ bpf_setf(struct bpf_d *d, struct bpf_program *fp)
 	if (copyin(fp->bf_insns, fcode, size) == 0 &&
 	    bpf_validate(fcode, (int)flen)) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		d->bd_filter = fcode;
 		reset_d(d);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (old != 0)
 			free(old, M_DEVBUF);
 
@@ -1172,6 +1197,7 @@ bpf_setif(struct bpf_d *d, struct ifreq *ifr)
 		}
 		reset_d(d);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 	/* Not found. */
@@ -1232,6 +1258,7 @@ bpf_poll(struct file *fp, int events)
 
 	KERNEL_UNLOCK_ONE(NULL);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (revents);
 }
 
@@ -1244,8 +1271,10 @@ filt_bpfrdetach(struct knote *kn)
 
 	KERNEL_LOCK(1, NULL);
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	SLIST_REMOVE(&d->bd_sel.sel_klist, kn, knote, kn_selnext);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	KERNEL_UNLOCK_ONE(NULL);
 }
 
@@ -1290,8 +1319,10 @@ bpf_kqfilter(struct file *fp, struct knote *kn)
 	kn->kn_hook = d;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	SLIST_INSERT_HEAD(klist, kn, kn_selnext);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	KERNEL_UNLOCK_ONE(NULL);
 
 	return (0);
@@ -1519,8 +1550,10 @@ bpf_mtap_sl_in(void *arg, u_char *chdr, struct mbuf **m)
 	(void)memcpy(&hp[SLX_CHDR], chdr, CHDR_LEN);
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	bpf_mtap(arg, *m);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	m_adj(*m, SLIP_HDRLEN);
 }
@@ -1548,8 +1581,10 @@ bpf_mtap_sl_out(void *arg, u_char *chdr, struct mbuf *m)
 	(void)memcpy(&hp[SLX_CHDR], chdr, CHDR_LEN);
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	bpf_mtap(arg, &m0);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	m_freem(m);
 }
 #endif
@@ -1764,9 +1799,11 @@ bpfdetach(struct ifnet *ifp)
 			 * It will be free'ed later by close routine.
 			 */
 			s = splnet();
+			tm_printf("%s, splnet() s=%d\n", __func__, s);
 			d->bd_promisc = 0;	/* we can't touch device. */
 			bpf_detachd(d);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		}
 	}
 
@@ -1857,6 +1894,7 @@ bpf_setdlt(struct bpf_d *d, u_int dlt)
 	if (bp == NULL)
 		return EINVAL;
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	opromisc = d->bd_promisc;
 	bpf_detachd(d);
 	bpf_attachd(d, bp);
@@ -1874,6 +1912,7 @@ bpf_setdlt(struct bpf_d *d, u_int dlt)
 			d->bd_promisc = 1;
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return 0;
 }
 

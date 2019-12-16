@@ -676,9 +676,11 @@ skip_ipsec:
 	 */
 	if (!ipsec_outdone(m)) {
 		s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 		if (inp != NULL &&
 		    IPSEC_PCB_SKIP_IPSEC(inp->inp_sp, IPSEC_DIR_OUTBOUND)) {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			goto spd_done;
 		}
 		sp = ipsec4_checkpolicy(m, IPSEC_DIR_OUTBOUND, flags,
@@ -703,6 +705,7 @@ skip_ipsec:
 					natt_frag = 1;
 					mtu = sp->req->sav->esp_frag;
 					splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 					goto spd_done;
 				}
 			}
@@ -734,9 +737,11 @@ skip_ipsec:
 			if (error == ENOENT)
 				error = 0;
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			goto done;
 		} else {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 			if (error != 0) {
 				/*
@@ -1047,6 +1052,7 @@ sendorfree:
 	 */
 	if (ifp != NULL) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		if (ifp->if_snd.ifq_maxlen - ifp->if_snd.ifq_len < fragments &&
 		    error == 0) {
 			error = ENOBUFS;
@@ -1054,6 +1060,7 @@ sendorfree:
 			IFQ_INC_DROPS(&ifp->if_snd);
 		}
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	}
 	if (error) {
 		for (m = m0; m; m = m0) {

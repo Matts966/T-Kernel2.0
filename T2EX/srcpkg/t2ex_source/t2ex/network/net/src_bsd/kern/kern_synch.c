@@ -433,10 +433,12 @@ kpreempt(uintptr_t where)
 		    	break;
 		}
 		s = splsched();
+		tm_printf("%s, splsched() s=%d\n", __func__, s);
 		if (__predict_false(l->l_blcnt != 0 ||
 		    curcpu()->ci_biglock_wanted != NULL)) {
 			/* Hold or want kernel_lock, code is not MT safe. */
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			if ((dop & DOPREEMPT_COUNTED) == 0) {
 				kpreempt_ev_klock.ev_count++;
 			}
@@ -450,6 +452,7 @@ kpreempt(uintptr_t where)
 			 * interrupt to retry later.
 			 */
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			failed = (uintptr_t)&cpu_kpreempt_enter_fail;
 			break;
 		}
@@ -461,6 +464,7 @@ kpreempt(uintptr_t where)
 		mi_switch(l);
 		l->l_nopreempt++;
 		splx(s);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		/* Take care of any MD cleanup. */
 		cpu_kpreempt_exit(where);
@@ -801,6 +805,7 @@ mi_switch(lwp_t *l)
 
 		KASSERT(l->l_cpu == ci);
 		splx(oldspl);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 		retval = 1;
 	} else {
 		/* Nothing to do - just unlock and return. */

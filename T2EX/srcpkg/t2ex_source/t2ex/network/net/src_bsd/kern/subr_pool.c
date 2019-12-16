@@ -604,10 +604,12 @@ pool_reclaim_register(struct pool *pp)
 	}
 
 #ifndef T2EX
-	s = splvm(); /* not necessary for INTRSAFE maps, but don't care. */
+	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s); /* not necessary for INTRSAFE maps, but don't care. */
 	callback_register(&vm_map_to_kernel(map)->vmk_reclaim_callback,
 	    &pp->pr_reclaimerentry, pp, pool_reclaim_callback);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 #endif
 }
 
@@ -624,10 +626,12 @@ pool_reclaim_unregister(struct pool *pp)
 	}
 
 #ifndef T2EX
-	s = splvm(); /* not necessary for INTRSAFE maps, but don't care. */
+	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s); /* not necessary for INTRSAFE maps, but don't care. */
 	callback_unregister(&vm_map_to_kernel(map)->vmk_reclaim_callback,
 	    &pp->pr_reclaimerentry);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 #endif
 }
 
@@ -2896,6 +2900,7 @@ pool_cache_get_slow(pool_cache_cpu_t *cc, int s, void **objectp,
 	pc->pc_misses++;
 	mutex_exit(&pc->pc_lock);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	object = pool_get(&pc->pc_pool, flags);
 	*objectp = object;
@@ -2945,6 +2950,7 @@ pool_cache_get_paddr(pool_cache_t pc, int flags, paddr_t *pap)
 
 	/* Lock out interrupts and disable preemption. */
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	while (/* CONSTCOND */ true) {
 		/* Try and allocate an object from the current group. */
 #ifndef T2EX
@@ -2965,6 +2971,7 @@ pool_cache_get_paddr(pool_cache_t pc, int flags, paddr_t *pap)
 #endif
 			cc->cc_hits++;
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			FREECHECK_OUT(&pc->pc_freecheck, object);
 			return object;
 		}
@@ -3085,6 +3092,7 @@ pool_cache_put_slow(pool_cache_cpu_t *cc, int s, void *object)
 	pc->pc_misses++;
 	mutex_exit(&pc->pc_lock);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	pool_cache_destruct_object(pc, object);
 
 	return false;
@@ -3107,6 +3115,7 @@ pool_cache_put_paddr(pool_cache_t pc, void *object, paddr_t pa)
 
 	/* Lock out interrupts and disable preemption. */
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	while (/* CONSTCOND */ true) {
 		/* If the current group isn't full, release it there. */
 #ifndef T2EX
@@ -3122,6 +3131,7 @@ pool_cache_put_paddr(pool_cache_t pc, void *object, paddr_t pa)
 			pcg->pcg_avail++;
 			cc->cc_hits++;
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			return;
 		}
 
@@ -3161,6 +3171,7 @@ pool_cache_xcall(pool_cache_t pc)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	mutex_enter(&pc->pc_lock);
 	cc = pc->pc_cpus[curcpu()->ci_index];
 	cur = cc->cc_current;
@@ -3197,6 +3208,7 @@ pool_cache_xcall(pool_cache_t pc)
 	}
 	mutex_exit(&pc->pc_lock);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 #endif
 

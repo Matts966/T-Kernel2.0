@@ -168,6 +168,7 @@ route_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 	if (req == PRU_DETACH && rp)
 		rt_adjustcount(rp->rcb_proto.sp_protocol, -1);
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	/*
 	 * Don't call raw_usrreq() in the attach case, because
@@ -189,6 +190,7 @@ route_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		if (error) {
 			free(rp, M_PCB);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return error;
 		}
 		rt_adjustcount(rp->rcb_proto.sp_protocol, 1);
@@ -198,6 +200,7 @@ route_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		so->so_options |= SO_USELOOPBACK;
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 
@@ -1203,6 +1206,7 @@ again:
 	w.w_where = where;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	switch (w.w_op) {
 
 	case NET_RT_DUMP:
@@ -1223,6 +1227,7 @@ again:
 		error = sysctl_iflist(af, &w, w.w_op);
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/* check to see if we couldn't allocate memory with NOWAIT */
 	if (error == ENOBUFS && w.w_tmem == 0 && w.w_tmemneeded)
@@ -1263,8 +1268,10 @@ route_intr(void *cookie)
 	KERNEL_LOCK(1, NULL);
 	while (!IF_IS_EMPTY(&route_intrq)) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IF_DEQUEUE(&route_intrq, m);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (m == NULL)
 			break;
 		proto.sp_protocol = M_GETCTX(m, uintptr_t);
@@ -1283,6 +1290,7 @@ route_enqueue(struct mbuf *m, int family)
 	int s, wasempty;
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	if (IF_QFULL(&route_intrq)) {
 		IF_DROP(&route_intrq);
 		m_freem(m);
@@ -1294,6 +1302,7 @@ route_enqueue(struct mbuf *m, int family)
 			softint_schedule(route_sih);
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifndef T2EX

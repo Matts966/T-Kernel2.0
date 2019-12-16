@@ -551,6 +551,7 @@ rip_usrreq(struct socket *so, int req,
 		    (struct ifnet *)control, l));
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if (req == PRU_PURGEIF) {
 		mutex_enter(softnet_lock);
@@ -559,6 +560,7 @@ rip_usrreq(struct socket *so, int req,
 		in_pcbpurgeif(&rawcbtable, (struct ifnet *)control);
 		mutex_exit(softnet_lock);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 
@@ -685,6 +687,7 @@ rip_usrreq(struct socket *so, int req,
 		 * stat: don't bother with a blocksize.
 		 */
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 
 	case PRU_RCVOOB:
@@ -711,6 +714,7 @@ rip_usrreq(struct socket *so, int req,
 
 release:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 

@@ -192,6 +192,7 @@ raw_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 		return (EOPNOTSUPP);
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	KERNEL_LOCK(1, NULL);
 	rp = sotorawcb(so);
 #ifdef DIAGNOSTIC
@@ -334,5 +335,6 @@ raw_usrreq(struct socket *so, int req, struct mbuf *m, struct mbuf *nam,
 release:
 	KERNEL_UNLOCK_ONE(NULL);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }

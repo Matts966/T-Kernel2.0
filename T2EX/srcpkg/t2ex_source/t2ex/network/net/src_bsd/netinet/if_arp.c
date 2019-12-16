@@ -284,12 +284,15 @@ arp_lock_try(int recurse)
 	 * mbuf allocation.
 	 */
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	if (!recurse && arp_locked) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return 0;
 	}
 	arp_locked++;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return 1;
 }
 
@@ -299,8 +302,10 @@ arp_unlock(void)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	arp_locked--;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifdef DIAGNOSTIC
@@ -675,9 +680,11 @@ arp_rtrequest(int req, struct rtentry *rt, const struct rt_addrinfo *info)
 		rt->rt_flags &= ~RTF_LLINFO;
 
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		mold = la->la_hold;
 		la->la_hold = 0;
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		if (mold)
 			m_freem(mold);
@@ -796,9 +803,11 @@ arpresolve(struct ifnet *ifp, struct rtentry *rt, struct mbuf *m,
 
 	ARP_STATINC(ARP_STAT_DFRTOTAL);
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	mold = la->la_hold;
 	la->la_hold = m;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	if (mold) {
 		ARP_STATINC(ARP_STAT_DFRDROPPED);
@@ -855,8 +864,10 @@ arpintr(void)
 	KERNEL_LOCK(1, NULL);
 	while (arpintrq.ifq_head) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IF_DEQUEUE(&arpintrq, m);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (m == 0 || (m->m_flags & M_PKTHDR) == 0)
 			panic("arpintr");
 
@@ -1156,9 +1167,11 @@ in_arpinput(struct mbuf *m)
 		la->la_asked = 0;
 
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		mold = la->la_hold;
 		la->la_hold = 0;
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 		if (mold) {
 			ARP_STATINC(ARP_STAT_DFRSENT);

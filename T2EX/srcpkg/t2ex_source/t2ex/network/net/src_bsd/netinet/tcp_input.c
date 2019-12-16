@@ -413,8 +413,10 @@ tcpipqent_alloc(void)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	ipqe = pool_get(&tcpipqent_pool, PR_NOWAIT);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	return ipqe;
 }
@@ -425,8 +427,10 @@ tcpipqent_free(struct ipqent *ipqe)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	pool_put(&tcpipqent_pool, ipqe);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 static int
@@ -3389,6 +3393,7 @@ syn_cache_insert(struct syn_cache *sc, struct tcpcb *tp)
 	 * limit or the total cache size limit.
 	 */
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	if (scp->sch_length >= tcp_syn_bucket_limit) {
 		TCP_STATINC(TCP_STAT_SC_BUCKETOVERFLOW);
 		/*
@@ -3459,6 +3464,7 @@ syn_cache_insert(struct syn_cache *sc, struct tcpcb *tp)
 
 	TCP_STATINC(TCP_STAT_SC_ADDED);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 /*
@@ -3533,6 +3539,7 @@ syn_cache_cleanup(struct tcpcb *tp)
 	int s;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	for (sc = LIST_FIRST(&tp->t_sc); sc != NULL; sc = nsc) {
 		nsc = LIST_NEXT(sc, sc_tpq);
@@ -3548,6 +3555,7 @@ syn_cache_cleanup(struct tcpcb *tp)
 	LIST_INIT(&tp->t_sc);
 
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 /*
@@ -3567,6 +3575,7 @@ syn_cache_lookup(const struct sockaddr *src, const struct sockaddr *dst,
 	scp = &tcp_syn_cache[hash % tcp_syn_cache_size];
 	*headp = scp;
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	for (sc = TAILQ_FIRST(&scp->sch_bucket); sc != NULL;
 	     sc = TAILQ_NEXT(sc, sc_bucketq)) {
 		if (sc->sc_hash != hash)
@@ -3574,10 +3583,12 @@ syn_cache_lookup(const struct sockaddr *src, const struct sockaddr *dst,
 		if (!bcmp(&sc->sc_src, src, src->sa_len) &&
 		    !bcmp(&sc->sc_dst, dst, dst->sa_len)) {
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return (sc);
 		}
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (NULL);
 }
 
@@ -3621,8 +3632,10 @@ syn_cache_get(struct sockaddr *src, struct sockaddr *dst,
 	struct socket *oso;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	if ((sc = syn_cache_lookup(src, dst, &scp)) == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (NULL);
 	}
 
@@ -3635,12 +3648,14 @@ syn_cache_get(struct sockaddr *src, struct sockaddr *dst,
 	    SEQ_GT(th->th_seq, sc->sc_irs + 1 + sc->sc_win)) {
 		(void) syn_cache_respond(sc, m);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return ((struct socket *)(-1));
 	}
 
 	/* Remove this cache entry */
 	syn_cache_rm(sc);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 	/*
 	 * Ok, create the full blown connection, and set things up
@@ -3894,8 +3909,10 @@ syn_cache_get(struct sockaddr *src, struct sockaddr *dst,
 
 	TCP_STATINC(TCP_STAT_SC_COMPLETED);
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	syn_cache_put(sc);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (so);
 
 resetandabort:
@@ -3907,8 +3924,10 @@ abort:
 		mutex_enter(softnet_lock);
 	}
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	syn_cache_put(sc);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	TCP_STATINC(TCP_STAT_SC_ABORTED);
 	return ((struct socket *)(-1));
 }
@@ -3925,20 +3944,24 @@ syn_cache_reset(struct sockaddr *src, struct sockaddr *dst, struct tcphdr *th)
 	struct syn_cache *sc;
 	struct syn_cache_head *scp;
 	int s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if ((sc = syn_cache_lookup(src, dst, &scp)) == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return;
 	}
 	if (SEQ_LT(th->th_seq, sc->sc_irs) ||
 	    SEQ_GT(th->th_seq, sc->sc_irs+1)) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return;
 	}
 	syn_cache_rm(sc);
 	TCP_STATINC(TCP_STAT_SC_RESET);
 	syn_cache_put(sc);	/* calls pool_put but see spl above */
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 void
@@ -3950,13 +3973,16 @@ syn_cache_unreach(const struct sockaddr *src, const struct sockaddr *dst,
 	int s;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	if ((sc = syn_cache_lookup(src, dst, &scp)) == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return;
 	}
 	/* If the sequence number != sc_iss, then it's a bogus ICMP msg */
 	if (ntohl (th->th_seq) != sc->sc_iss) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return;
 	}
 
@@ -3971,6 +3997,7 @@ syn_cache_unreach(const struct sockaddr *src, const struct sockaddr *dst,
 	if ((sc->sc_flags & SCF_UNREACH) == 0 || sc->sc_rxtshift < 3) {
 		sc->sc_flags |= SCF_UNREACH;
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return;
 	}
 
@@ -3978,6 +4005,7 @@ syn_cache_unreach(const struct sockaddr *src, const struct sockaddr *dst,
 	TCP_STATINC(TCP_STAT_SC_UNREACH);
 	syn_cache_put(sc);	/* calls pool_put but see spl above */
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 /*
@@ -4081,8 +4109,10 @@ syn_cache_add(struct sockaddr *src, struct sockaddr *dst, struct tcphdr *th,
 	}
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	sc = pool_get(&syn_cache_pool, PR_NOWAIT);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	if (sc == NULL) {
 		if (ipopts)
 			(void) m_free(ipopts);
@@ -4189,6 +4219,7 @@ syn_cache_add(struct sockaddr *src, struct sockaddr *dst, struct tcphdr *th,
 		syn_cache_insert(sc, tp);
 	} else {
 		s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 		/*
 		 * syn_cache_put() will try to schedule the timer, so
 		 * we need to initialize it
@@ -4196,6 +4227,7 @@ syn_cache_add(struct sockaddr *src, struct sockaddr *dst, struct tcphdr *th,
 		SYN_CACHE_TIMER_ARM(sc);
 		syn_cache_put(sc);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		TCP_STATINC(TCP_STAT_SC_DROPPED);
 	}
 	return (1);

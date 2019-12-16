@@ -891,6 +891,7 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
 	 * blocking (expensive).
 	 */
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	solock(so);
 	atomic = sosendallatonce(so) || top;
 	if (uio)
@@ -974,6 +975,7 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
 			} else do {
 				sounlock(so);
 				splx(s);
+				tm_printf("%s, splx() s=%d\n", __func__, s);
 				if (top == NULL) {
 					m = m_gethdr(M_WAIT, MT_DATA);
 #ifdef T2EX
@@ -1041,6 +1043,7 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
 				*mp = m;
 				top->m_pkthdr.len += len;
 				s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 				solock(so);
 				if (error != 0)
 					goto release;
@@ -1081,6 +1084,7 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
  out:
 	sounlock(so);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	if (top)
 		m_freem(top);
 	if (control)
@@ -1202,6 +1206,7 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 	 * blocking (expensive).
 	 */
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	solock(so);
 	if (so->so_state & SS_ISCONFIRMING && uio->uio_resid)
 		(*pr->pr_usrreq)(so, PRU_RCVD, NULL, NULL, NULL, l);
@@ -1210,6 +1215,7 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 	if ((error = sblock(&so->so_rcv, SBLOCKWAIT(flags))) != 0) {
 		sounlock(so);
 		splx(s);
+		tm_printf("%s, splx() s=%d\n", __func__, s);
 		return error;
 	}
 
@@ -1273,6 +1279,7 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 		if (error != 0) {
 			sounlock(so);
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			return error;
 		}
 		goto restart;
@@ -1365,8 +1372,10 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 				    type == SCM_RIGHTS) {
 					sounlock(so);
 					splx(s);
+					tm_printf("%s, splx() s=%d\n", __func__, s);
 					error = (*dom->dom_externalize)(cm, l);
 					s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 					solock(so);
 				}
 				*controlp = cm;
@@ -1433,8 +1442,10 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 			SBLASTMBUFCHK(&so->so_rcv, "soreceive uiomove");
 			sounlock(so);
 			splx(s);
+			tm_printf("%s, splx() s=%d\n", __func__, s);
 			error = uiomove(mtod(m, char *) + moff, (int)len, uio);
 			s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 			solock(so);
 			if (error != 0) {
 				/*
@@ -1552,6 +1563,7 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 				sbunlock(&so->so_rcv);
 				sounlock(so);
 				splx(s);
+				tm_printf("%s, splx() s=%d\n", __func__, s);
 				return 0;
 			}
 			if ((m = so->so_rcv.sb_mb) != NULL)
@@ -1596,6 +1608,7 @@ soreceive(struct socket *so, struct mbuf **paddr, struct uio *uio,
 	sbunlock(&so->so_rcv);
 	sounlock(so);
 	splx(s);
+	tm_printf("%s, splx() s=%d\n", __func__, s);
 	return error;
 }
 

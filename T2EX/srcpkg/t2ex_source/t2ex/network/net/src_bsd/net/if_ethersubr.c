@@ -1174,12 +1174,14 @@ ether_ifdetach(struct ifnet *ifp)
 #endif
 
 	s = splnet();
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 	while ((enm = LIST_FIRST(&ec->ec_multiaddrs)) != NULL) {
 		LIST_REMOVE(enm, enm_list);
 		free(enm, M_IFMADDR);
 		ec->ec_multicnt--;
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 
 #if 0	/* done in if_detach() */
 	if_free_sadl(ifp);
@@ -1396,10 +1398,12 @@ ether_addmulti(const struct sockaddr *sa, struct ethercom *ec)
 	u_char addrlo[ETHER_ADDR_LEN];
 	u_char addrhi[ETHER_ADDR_LEN];
 	int s = splnet(), error;
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	error = ether_multiaddr(sa, addrlo, addrhi);
 	if (error != 0) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return error;
 	}
 
@@ -1408,6 +1412,7 @@ ether_addmulti(const struct sockaddr *sa, struct ethercom *ec)
 	 */
 	if ((addrlo[0] & 0x01) != 1 || (addrhi[0] & 0x01) != 1) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return EINVAL;
 	}
 	/*
@@ -1420,6 +1425,7 @@ ether_addmulti(const struct sockaddr *sa, struct ethercom *ec)
 		 */
 		++enm->enm_refcount;
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return 0;
 	}
 	/*
@@ -1429,6 +1435,7 @@ ether_addmulti(const struct sockaddr *sa, struct ethercom *ec)
 	enm = (struct ether_multi *)malloc(sizeof(*enm), M_IFMADDR, M_NOWAIT);
 	if (enm == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return ENOBUFS;
 	}
 	memcpy(enm->enm_addrlo, addrlo, 6);
@@ -1437,6 +1444,7 @@ ether_addmulti(const struct sockaddr *sa, struct ethercom *ec)
 	LIST_INSERT_HEAD(&ec->ec_multiaddrs, enm, enm_list);
 	ec->ec_multicnt++;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	/*
 	 * Return ENETRESET to inform the driver that the list has changed
 	 * and its reception filter should be adjusted accordingly.
@@ -1454,10 +1462,12 @@ ether_delmulti(const struct sockaddr *sa, struct ethercom *ec)
 	u_char addrlo[ETHER_ADDR_LEN];
 	u_char addrhi[ETHER_ADDR_LEN];
 	int s = splnet(), error;
+	tm_printf("%s, splnet() s=%d\n", __func__, s);
 
 	error = ether_multiaddr(sa, addrlo, addrhi);
 	if (error != 0) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (error);
 	}
 
@@ -1467,6 +1477,7 @@ ether_delmulti(const struct sockaddr *sa, struct ethercom *ec)
 	ETHER_LOOKUP_MULTI(addrlo, addrhi, ec, enm);
 	if (enm == NULL) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (ENXIO);
 	}
 	if (--enm->enm_refcount != 0) {
@@ -1474,6 +1485,7 @@ ether_delmulti(const struct sockaddr *sa, struct ethercom *ec)
 		 * Still some claims to this record.
 		 */
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 	/*
@@ -1483,6 +1495,7 @@ ether_delmulti(const struct sockaddr *sa, struct ethercom *ec)
 	free(enm, M_IFMADDR);
 	ec->ec_multicnt--;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	/*
 	 * Return ENETRESET to inform the driver that the list has changed
 	 * and its reception filter should be adjusted accordingly.

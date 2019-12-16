@@ -208,6 +208,7 @@ tcp_usrreq(struct socket *so, int req,
 	}
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 
 	if (req == PRU_PURGEIF) {
 		mutex_enter(softnet_lock);
@@ -229,10 +230,12 @@ tcp_usrreq(struct socket *so, int req,
 		default:
 			mutex_exit(softnet_lock);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			return (EAFNOSUPPORT);
 		}
 		mutex_exit(softnet_lock);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 
@@ -256,6 +259,7 @@ tcp_usrreq(struct socket *so, int req,
 #endif
 	default:
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return EAFNOSUPPORT;
 	}
 
@@ -541,6 +545,7 @@ tcp_usrreq(struct socket *so, int req,
 		 * stat: don't bother with a blocksize.
 		 */
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 
 	case PRU_RCVOOB:
@@ -620,6 +625,7 @@ tcp_usrreq(struct socket *so, int req,
 
 release:
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 
@@ -664,6 +670,7 @@ tcp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 	family = so->so_proto->pr_domain->dom_family;
 
 	s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 	switch (family) {
 #ifdef INET
 	case PF_INET:
@@ -681,6 +688,7 @@ tcp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 #endif
 	default:
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		panic("%s: af %d", __func__, family);
 	}
 #ifndef INET6
@@ -690,6 +698,7 @@ tcp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 #endif
 	{
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (ECONNRESET);
 	}
 	if (level != IPPROTO_TCP) {
@@ -706,6 +715,7 @@ tcp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 #endif
 		}
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (error);
 	}
 	if (inp)
@@ -835,6 +845,7 @@ tcp_ctloutput(int op, struct socket *so, struct sockopt *sopt)
 		break;
 	}
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (error);
 }
 

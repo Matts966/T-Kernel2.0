@@ -217,8 +217,10 @@ ER lock_mutex(__volatile kmutex_t* mtx, TMO tmo)
 		ercd = MLockTmo(&mutex_mlock[index].lock, no, TMO_POL);
 		if ( ercd == E_TMOUT ) {
 			s = tkn_spl_unlock(IPL_NONE);
+			tm_printf("%s, tkn_spl_unlock() s=%d\n", __func__, IPL_NONE);
 			ercd = MLockTmo(&mutex_mlock[index].lock, no, tmo);
 			tkn_spl_lock(s);
+			tm_printf("%s, tkn_spl_lock() s=%d\n", __func__, s);
 		}
 	} else {
 		ercd = MLockTmo(&mutex_mlock[index].lock, no, tmo);
@@ -263,6 +265,7 @@ LOCAL void release_mutex(__volatile kmutex_t* mtx)
 				int s = mtx_oldspl;
 				mtx_oldspl = 0;
 				tkn_spl_unlock(s);
+				tm_printf("%s, tkn_spl_unlock() s=%d\n", __func__, s);
 			}
 		}
 	}
@@ -328,6 +331,7 @@ void tkn_mutex_spin_enter( __volatile kmutex_t *mtx )
 	UnlockTKN();
 
 	int s = tkn_spl_lock(mtx->ipl);
+	// tm_printf("%s, tkn_spl_lock() s=%d\n", __func__, s);
 
 	LockTKN();
 	if ( mtx_count++ == 0 ) {
@@ -390,6 +394,7 @@ void tkn_mutex_spin_exit( __volatile kmutex_t *mtx )
 		int s = mtx_oldspl;
 		mtx_oldspl = 0;
 		tkn_spl_unlock(s);
+		// tm_printf("%s, tkn_spl_unlock() s=%d\n", __func__, s);
 	}
 	UnlockTKN();
 }
@@ -430,6 +435,7 @@ int tkn_mutex_tryenter( __volatile kmutex_t *mtx )
 
 	if ( mtx->type == MUTEX_SPIN ) {
 		int s = tkn_spl_lock(mtx->ipl);
+		tm_printf("%s, tkn_spl_lock() s=%d\n", __func__, s);
 		LockTKN();
 		if ( mtx_count++ == 0 ) {
 			mtx_oldspl = s;

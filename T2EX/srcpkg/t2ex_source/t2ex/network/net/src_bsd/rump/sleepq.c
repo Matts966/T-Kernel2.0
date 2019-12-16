@@ -458,8 +458,11 @@ sleepq_abort(kmutex_t *mtx, int unlock)
 	int s;
 
 	s = splhigh();
+	tm_printf("%s, splhigh() s=%d\n", __func__, s);
 	splx(safepri);
+tm_printf("%s, splx() safepri=%d\n", __func__, safepri);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 #endif
 	if (mtx != NULL && unlock != 0)
 		mutex_exit(mtx);

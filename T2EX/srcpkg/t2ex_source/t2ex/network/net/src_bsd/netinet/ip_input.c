@@ -301,12 +301,15 @@ ipq_lock_try(void)
 	 * mbuf allocation.
 	 */
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	if (ipq_locked) {
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		return (0);
 	}
 	ipq_locked = 1;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (1);
 }
 
@@ -316,8 +319,10 @@ ipq_unlock(void)
 	int s;
 
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	ipq_locked = 0;
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 }
 
 #ifdef DIAGNOSTIC
@@ -599,8 +604,10 @@ ipintr(void)
 	KERNEL_LOCK(1, NULL);
 	while (!IF_IS_EMPTY(&ipintrq)) {
 		s = splnet();
+		tm_printf("%s, splnet() s=%d\n", __func__, s);
 		IF_DEQUEUE(&ipintrq, m);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (m == NULL)
 			break;
 		ip_input(m);
@@ -973,6 +980,7 @@ ip_input(struct mbuf *m)
 #ifdef FAST_IPSEC
 		mtag = m_tag_find(m, PACKET_TAG_IPSEC_IN_DONE, NULL);
 		s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 		if (mtag != NULL) {
 			tdbi = (struct tdb_ident *)(mtag + 1);
 			sp = ipsec_getpolicy(tdbi, IPSEC_DIR_INBOUND);
@@ -982,6 +990,7 @@ ip_input(struct mbuf *m)
 		}
 		if (sp == NULL) {	/* NB: can happen if error */
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			/*XXX error stat???*/
 			DPRINTF(("ip_input: no SP for forwarding\n"));	/*XXX*/
 			goto bad;
@@ -993,6 +1002,7 @@ ip_input(struct mbuf *m)
 		error = ipsec_in_reject(sp, m);
 		KEY_FREESP(&sp);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (error) {
 			IP_STATINC(IP_STAT_CANTFORWARD);
 			goto bad;
@@ -1007,6 +1017,7 @@ ip_input(struct mbuf *m)
 			m->m_flags &= ~M_CANFASTFWD;
 		else {
 			s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 			sp = ipsec4_checkpolicy(m, IPSEC_DIR_OUTBOUND,
 			    (IP_FORWARDING |
 			     (ip_directedbcast ? IP_ALLOWBROADCAST : 0)),
@@ -1016,6 +1027,7 @@ ip_input(struct mbuf *m)
 				KEY_FREESP(&sp);
 			}
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		}
 #endif	/* FAST_IPSEC */
 
@@ -1099,8 +1111,10 @@ found:
 		if (mff || ip->ip_off != htons(0)) {
 			IP_STATINC(IP_STAT_FRAGMENTS);
 			s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 			ipqe = pool_get(&ipqent_pool, PR_NOWAIT);
 			splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 			if (ipqe == NULL) {
 				IP_STATINC(IP_STAT_RCVMEMDROP);
 				IPQ_UNLOCK();
@@ -1151,6 +1165,7 @@ found:
 		 */
 		mtag = m_tag_find(m, PACKET_TAG_IPSEC_IN_DONE, NULL);
 		s = splsoftnet();
+tm_printf("%s, splsoftnet() s=%d\n", __func__, s);
 		if (mtag != NULL) {
 			tdbi = (struct tdb_ident *)(mtag + 1);
 			sp = ipsec_getpolicy(tdbi, IPSEC_DIR_INBOUND);
@@ -1170,6 +1185,7 @@ found:
 DPRINTF(("ip_input: no SP, packet discarded\n"));/*XXX*/
 		}
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		if (error)
 			goto bad;
 	}
@@ -1319,8 +1335,10 @@ ip_reass(struct ipqent *ipqe, struct ipq *fp, struct ipqhead *ipqhead)
 		m_freem(q->ipqe_m);
 		TAILQ_REMOVE(&fp->ipq_fragq, q, ipqe_q);
 		s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 		pool_put(&ipqent_pool, q);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		fp->ipq_nfrags--;
 		ip_nfrags--;
 	}
@@ -1362,14 +1380,18 @@ insert:
 	m_cat(m, t);
 	nq = TAILQ_NEXT(q, ipqe_q);
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	pool_put(&ipqent_pool, q);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	for (q = nq; q != NULL; q = nq) {
 		t = q->ipqe_m;
 		nq = TAILQ_NEXT(q, ipqe_q);
 		s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 		pool_put(&ipqent_pool, q);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 		m_cat(m, t);
 	}
 	ip_nfrags -= fp->ipq_nfrags;
@@ -1405,8 +1427,10 @@ dropfrag:
 	IP_STATINC(IP_STAT_FRAGDROPPED);
 	m_freem(m);
 	s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 	pool_put(&ipqent_pool, ipqe);
 	splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	return (0);
 }
 
@@ -1429,8 +1453,10 @@ ip_freef(struct ipq *fp)
 		nfrags++;
 		TAILQ_REMOVE(&fp->ipq_fragq, q, ipqe_q);
 		s = splvm();
+tm_printf("%s, splvm() s=%d\n", __func__, s);
 		pool_put(&ipqent_pool, q);
 		splx(s);
+tm_printf("%s, splx() s=%d\n", __func__, s);
 	}
 
 #if !defined(T2EX) || defined(DEBUG)
