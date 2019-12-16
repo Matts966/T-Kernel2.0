@@ -6,7 +6,7 @@
 #include "examples/nbclient/nbclient.h"
 #include "network_sample/net_test.h"
 
-typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
+typedef enum { TASK_A, TASK_B, TASK_MQTT_SHELL, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
 EXPORT ID initial_task_id;
 
@@ -31,7 +31,7 @@ EXPORT void task_b(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
-EXPORT void task_mqtt(INT stacd, VP exinf) {
+EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	MQTTCtx mqttCtx;
 	mqtt_init_ctx(&mqttCtx);
 	mqttCtx.app_name = "nbclient";
@@ -44,11 +44,24 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 	int rc;
 
 	do {
-		rc = mqttclient_test(&mqttCtx);
+		rc = mqttclient_connect(&mqttCtx);
 	} while (rc == MQTT_CODE_CONTINUE);
-	
-	tm_printf("exit task_mqtt, cause: %s\n",
-		MqttClient_ReturnCodeToString(rc));
+
+	while ( 1 ) {
+		tm_putstring((UB*)"Push p to publish, q to quit. ");
+		char c = tm_getchar(-1);
+		tm_putstring("\n");
+		if (c == 'p') {
+			mqttclient_publish(&mqttCtx);
+		} else if (c == 'q') {
+			mqttCtx.stat = WMQ_UNSUB;
+			do {
+				rc = mqttclient_test(&mqttCtx);
+			} while (rc == MQTT_CODE_CONTINUE);
+			break;
+		}
+	}
+
 	if ( tk_wup_tsk( initial_task_id ) != E_OK )
 		tm_putstring(" *** Failed in tk_wup_tsk to initial_task\n");
 	tk_ext_tsk();
@@ -139,25 +152,25 @@ EXPORT INT usermain( void ) {
 
 	t_ctsk.itskpri = 2;
 	t_ctsk.stksz = 1024;
-	STRCPY( (char *)t_ctsk.dsname, "task_mqtt");
-	t_ctsk.task = task_mqtt;
+	STRCPY( (char *)t_ctsk.dsname, "task_mqtt_shell");
+	t_ctsk.task = task_mqtt_shell;
 	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
-		tm_putstring(" *** Failed in the creation of task_mqtt.\n");
+		tm_putstring(" *** Failed in the creation of task_mqtt_shell.\n");
 		return 1;
 	}
-	ObjID[TASK_MQTT] = objid;
-	tm_putstring("*** task_mqtt created.\n");
+	ObjID[TASK_MQTT_SHELL] = objid;
+	tm_putstring("*** task_mqtt_shell created.\n");
 
 	initial_task_id = tk_get_tid();
 
 	while ( 1 ) {
-		tm_putstring((UB*)"Push a to start task_a, m to start task_mqtt. ");
+		tm_putstring((UB*)"Push a to start task_a, m to start task_mqtt_shell. ");
 		char c = tm_getchar(-1);
 		tm_putstring("\n");
 		if (c == 'a') {
 			tk_sta_tsk( ObjID[TASK_A], 0 );
 		} else if (c == 'm') {
-			tk_sta_tsk( ObjID[TASK_MQTT], 0 );
+			tk_sta_tsk( ObjID[TASK_MQTT_SHELL], 0 );
 			tk_slp_tsk( TMO_FEVR );
 		}
 	}
