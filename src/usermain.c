@@ -3,7 +3,7 @@
 #include <libstr.h>
 #include "wolfmqtt/mqtt_client.h"
 #include "examples/mqttnet.h"
-#include "examples/mqttclient/mqttclient.h"
+#include "examples/nbclient/nbclient.h"
 #include "network_sample/net_test.h"
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT, OBJ_KIND_NUM } OBJ_KIND;
@@ -42,7 +42,11 @@ EXPORT void task_mqtt(INT stacd, VP exinf) {
 	mqttCtx.test_mode = 1;
 	mqttCtx.topic_name = "test";
 	int rc;
-	rc = mqttclient_test(&mqttCtx);
+
+	do {
+		rc = mqttclient_test(&mqttCtx);
+	} while (rc == MQTT_CODE_CONTINUE);
+	
 	tm_printf("exit task_mqtt, cause: %s\n",
 		MqttClient_ReturnCodeToString(rc));
 	if ( tk_wup_tsk( initial_task_id ) != E_OK )
