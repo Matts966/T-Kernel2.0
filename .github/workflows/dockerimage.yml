@@ -10,10 +10,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: docker build . --tag tk:$(date +%s)
     - name: Publish to Registry
-      uses: elgohr/Publish-Docker-Github-Action@master
+      uses: elgohr/Publish-Docker-Github-Action@2.10
+      env:
+        DOCKER_BUILDKIT: 1
       with:
         name: matts966/tkernel2.0
         username: ${{ secrets.DOCKER_USERNAME }}
