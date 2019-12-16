@@ -7,5 +7,5 @@ run-with-vnc: build
 start:
 	docker run --rm -it qt
 build:
-	docker build -t qt .
+	DOCKER_BUILDKIT=1 docker build -t qt .
 .PHONY: start restart build
