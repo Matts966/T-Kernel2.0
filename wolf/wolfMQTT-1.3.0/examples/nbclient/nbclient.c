@@ -603,10 +603,131 @@ int mqttclient_connect(MQTTCtx *mqttCtx)
                     sizeof(mqttCtx->topics) / sizeof(MqttTopic);
             mqttCtx->subscribe.topics = mqttCtx->topics;
 
+            FALL_THROUGH;
+        }
+
+        case WMQ_SUB:
+        {
+            mqttCtx->stat = WMQ_SUB;
+
+            rc = MqttClient_Subscribe(&mqttCtx->client, &mqttCtx->subscribe);
+            if (rc == MQTT_CODE_CONTINUE) {
+                return rc;
+            }
+
+            PRINTF("MQTT Subscribe: %s (%d)",
+                MqttClient_ReturnCodeToString(rc), rc);
+            if (rc != MQTT_CODE_SUCCESS) {
+                goto disconn;
+            }
+
+            /* show subscribe results */
+            for (i = 0; i < mqttCtx->subscribe.topic_count; i++) {
+                mqttCtx->topic = &mqttCtx->subscribe.topics[i];
+                PRINTF("  Topic %s, Qos %u, Return Code %u",
+                    mqttCtx->topic->topic_filter,
+                    mqttCtx->topic->qos, mqttCtx->topic->return_code);
+            }
+
+            /* Publish Topic */
+            XMEMSET(&mqttCtx->publish, 0, sizeof(MqttPublish));
+            mqttCtx->publish.retain = 0;
+            mqttCtx->publish.qos = mqttCtx->qos;
+            mqttCtx->publish.duplicate = 0;
+            mqttCtx->publish.topic_name = mqttCtx->topic_name;
+            mqttCtx->publish.packet_id = mqtt_get_packetid();
+            mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
+            mqttCtx->publish.total_len = (word16)XSTRLEN(TEST_MESSAGE);
+
+            FALL_THROUGH;
+        }
+
+        case WMQ_PUB:
+        {
+            mqttCtx->stat = WMQ_PUB;
+
+            rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
+            if (rc == MQTT_CODE_CONTINUE) {
+                return rc;
+            }
+            PRINTF("MQTT Publish: Topic %s, %s (%d)",
+                mqttCtx->publish.topic_name,
+                MqttClient_ReturnCodeToString(rc), rc);
+            if (rc != MQTT_CODE_SUCCESS) {
+                goto disconn;
+            }
+
+            /* Read Loop */
+            PRINTF("MQTT Waiting for message...");
+
+            FALL_THROUGH;
+        }
+
+        case WMQ_WAIT_MSG:
+        {
+            mqttCtx->stat = WMQ_WAIT_MSG;
+
+            do {
+                /* Try and read packet */
+                rc = MqttClient_WaitMessage(&mqttCtx->client,
+                                                    mqttCtx->cmd_timeout_ms);
+
+                /* check for test mode */
+                if (mStopRead) {
+                    rc = MQTT_CODE_SUCCESS;
+                    PRINTF("MQTT Exiting...");
+                    break;
+                }
+
+                /* Track elapsed time with no activity and trigger timeout */
+                rc = mqtt_check_timeout(rc, &mqttCtx->start_sec,
+                    mqttCtx->cmd_timeout_ms/1000);
+
+                /* check return code */
+                if (rc == MQTT_CODE_CONTINUE) {
+                    return rc;
+                }
+                else if (rc == MQTT_CODE_ERROR_TIMEOUT) {
+                    /* Keep Alive */
+                    PRINTF("Keep-alive timeout, sending ping");
+
+                    rc = MqttClient_Ping(&mqttCtx->client);
+                    if (rc == MQTT_CODE_CONTINUE) {
+                        return rc;
+                    }
+                    else if (rc != MQTT_CODE_SUCCESS) {
+                        PRINTF("MQTT Ping Keep Alive Error: %s (%d)",
+                            MqttClient_ReturnCodeToString(rc), rc);
+                        break;
+                    }
+                }
+                else if (rc != MQTT_CODE_SUCCESS) {
+                    /* There was an error */
+                    PRINTF("MQTT Message Wait: %s (%d)",
+                        MqttClient_ReturnCodeToString(rc), rc);
+                    break;
+                }
+            } while (1);
+
+            /* Check for error */
+            if (rc != MQTT_CODE_SUCCESS) {
+                goto disconn;
+            }
+
+            /* Unsubscribe Topics */
+            XMEMSET(&mqttCtx->unsubscribe, 0, sizeof(MqttUnsubscribe));
+            mqttCtx->unsubscribe.packet_id = mqtt_get_packetid();
+            mqttCtx->unsubscribe.topic_count =
+                sizeof(mqttCtx->topics) / sizeof(MqttTopic);
+            mqttCtx->unsubscribe.topics = mqttCtx->topics;
+
+            mqttCtx->stat = WMQ_UNSUB;
+            mqttCtx->start_sec = 0;
+
             goto connected;
         }
     }
-    
+
 disconn:
     mqttCtx->stat = WMQ_NET_DISCONNECT;
     mqttCtx->return_code = rc;
@@ -648,6 +769,44 @@ void mqttclient_publish(MQTTCtx *mqttCtx) {
     PRINTF("MQTT Publish: Topic %s, %s (%d)",
         mqttCtx->publish.topic_name,
         MqttClient_ReturnCodeToString(rc), rc);
+}
+
+void mqttclient_wait_message(MQTTCtx *mqttCtx) {
+    int rc = MQTT_CODE_SUCCESS;
+    mqttCtx->stat = WMQ_WAIT_MSG;
+
+    do {
+        /* Try and read packet */
+        rc = MqttClient_WaitMessage(&mqttCtx->client,
+                                            mqttCtx->cmd_timeout_ms);
+
+        if (rc == MQTT_CODE_SUCCESS) {
+            break;
+        }
+        else if (rc == MQTT_CODE_CONTINUE) {
+            continue;
+        }
+        else if (rc == MQTT_CODE_ERROR_TIMEOUT) {
+            /* Keep Alive */
+            PRINTF("Keep-alive timeout, sending ping");
+
+            rc = MqttClient_Ping(&mqttCtx->client);
+            if (rc == MQTT_CODE_CONTINUE) {
+                continue;
+            }
+            else if (rc != MQTT_CODE_SUCCESS) {
+                PRINTF("MQTT Ping Keep Alive Error: %s (%d)",
+                    MqttClient_ReturnCodeToString(rc), rc);
+                break;
+            }
+        }
+        else if (rc != MQTT_CODE_SUCCESS) {
+            /* There was an error */
+            PRINTF("MQTT Message Wait: %s (%d)",
+                MqttClient_ReturnCodeToString(rc), rc);
+            break;
+        }
+    } while (1);
 }
 
 #endif /* WOLFMQTT_NONBLOCK */

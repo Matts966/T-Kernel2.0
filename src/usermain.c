@@ -48,7 +48,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	} while (rc == MQTT_CODE_CONTINUE);
 
 	while ( 1 ) {
-		tm_putstring((UB*)"Push p to publish, q to quit. ");
+		tm_putstring((UB*)"Push p to publish, q to quit, w to wait messages. ");
 		char c = tm_getchar(-1);
 		tm_putstring("\n");
 		if (c == 'p') {
@@ -59,6 +59,8 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 				rc = mqttclient_test(&mqttCtx);
 			} while (rc == MQTT_CODE_CONTINUE);
 			break;
+		} else if (c == 'w') {
+			mqttclient_wait_message(&mqttCtx);
 		}
 	}
 
