@@ -4,7 +4,11 @@
 #include "wolfmqtt/mqtt_client.h"
 #include "examples/mqttnet.h"
 #include "examples/nbclient/nbclient.h"
-#include "network_sample/net_test.h"
+
+#define NET_CONF_MACHINE  (0)
+#define NET_CONF_EMULATOR (1)
+#define NET_CONF_STATIC (0)
+#define NET_CONF_DHCP   (1)
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT_SHELL, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
@@ -147,10 +151,9 @@ EXPORT INT usermain( void ) {
 #ifdef	USE_T2EX_NET
 	err = so_main(0, NULL);
 	tm_putstring(err >= E_OK ? "so_main(0) - OK\n":"so_main(0) - ERR\n");
+	// Network initialization
+	net_conf(NET_CONF_EMULATOR, NET_CONF_DHCP);
 #endif
-	libc_stdio_init();
-	// Network initialization and test
-	net_test();
 
 	t_ctsk.itskpri = 2;
 	t_ctsk.stksz = 1024;
