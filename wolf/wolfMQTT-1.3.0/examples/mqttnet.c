@@ -182,6 +182,7 @@
 typedef enum {
     SOCK_BEGIN = 0,
     SOCK_CONN,
+    TKERNEL_SOCK_CONN_ASYNC,
 } NB_Stat;
 
 
@@ -681,22 +682,15 @@ static int NetConnect(void *context, const char* host, word16 port,
 
         case SOCK_CONN:
         {
-        #ifdef TKERNEL
-            rc = SOCK_CONNECT(sock->fd, (struct sockaddr*)&sock->addr, sizeof(sock->addr));
-            if (rc < 0) {
-                goto exit;
-            }
-            break;
-        #else
-        #ifndef WOLFMQTT_NO_TIMEOUT
+        #if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(TKERNEL)
+            /* Setup FD's */
             fd_set fdset;
-            struct timeval tv;
-
-            /* Setup timeout and FD's */
-            setup_timeout(&tv, timeout_ms);
             FD_ZERO(&fdset);
             FD_SET(sock->fd, &fdset);
-        #endif /* !WOLFMQTT_NO_TIMEOUT */
+            /* Setup timeout */
+            struct timeval tv;
+            setup_timeout(&tv, timeout_ms);
+        #endif /* !WOLFMQTT_NO_TIMEOUT && !TKERNEL */
 
         #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK)
             /* Set socket as non-blocking */
@@ -705,6 +699,40 @@ static int NetConnect(void *context, const char* host, word16 port,
 
             /* Start connect */
             rc = SOCK_CONNECT(sock->fd, (struct sockaddr*)&sock->addr, sizeof(sock->addr));
+
+        #ifdef TKERNEL
+            if (rc == EX_INPROGRESS) {
+                rc = MQTT_CODE_CONTINUE;
+                sock->stat = TKERNEL_SOCK_CONN_ASYNC;
+                FALL_THROUGH;
+            }
+            if (rc < 0) {
+                break;
+            }
+            /* Success */
+            rc = 0;
+            break;
+        }
+        
+        case TKERNEL_SOCK_CONN_ASYNC:
+        {
+            fd_set fdset;
+            FD_ZERO(&fdset);
+            FD_SET(sock->fd, &fdset);
+            rc = so_select_ms((int)SELECT_FD(sock->fd), NULL, &fdset, NULL, timeout_ms);
+            if (rc < 0) {
+                break;
+            }
+            if (rc == 0) {
+                /* Timeout */
+                rc = MQTT_CODE_CONTINUE;
+                break;
+            }
+            /* Success */
+            rc = 0;
+            break;
+        }
+        #else
         #ifndef WOLFMQTT_NO_TIMEOUT
             /* Wait for connect */
             if (rc < 0 || SOCK_SELECT((int)SELECT_FD(sock->fd), NULL, &fdset, NULL, &tv) > 0)
@@ -725,8 +753,8 @@ static int NetConnect(void *context, const char* host, word16 port,
             #endif
             }
             break;
-        #endif
         }
+        #endif /* TKERNEL */
 
         default:
         {
@@ -846,28 +874,36 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
         return MQTT_CODE_ERROR_BAD_ARG;
     }
 
+#ifdef TKERNEL
+    /* Setup timeout */
+    setup_timeout(&tv, timeout_ms);
+    SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+    rc = so_write(sock->fd, buf, buf_len);
+    if (rc == EX_AGAIN) {
+        PRINTF("timeout_s: %d, timeout_us: %d\n", tv.tv_sec, tv.tv_usec);
+        return MQTT_CODE_CONTINUE;
+    }
+    if (rc < 0) {
+        // Error
+        return rc;
+    }
+    // Success
+    return MQTT_CODE_SUCCESS;
+#else
+
 #ifndef WOLFMQTT_NO_TIMEOUT
     /* Setup timeout */
     setup_timeout(&tv, timeout_ms);
     SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
 #endif
 
-#ifdef TKERNEL
-    rc = so_write(sock->fd, buf, buf_len);
-    if (rc < 0) {
-#else
     rc = (int)SOCK_SEND(sock->fd, buf, buf_len, 0);
     if (rc == -1) {
-#endif
         /* Get error */
         socklen_t len = sizeof(so_error);
         SOCK_GETSOCKOPT(sock->fd, SOL_SOCKET, SO_ERROR, &so_error, &len);
         if (so_error == 0) {
-        #ifdef TKERNEL
-            rc = -1;
-        #else
             rc = 0; /* Handle signal */
-        #endif
         }
         else {
         #ifdef WOLFMQTT_NONBLOCK
@@ -884,6 +920,7 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
             PRINTF("NetWrite: Error %d", so_error);
         }
     }
+#endif
 
     (void)timeout_ms;
 

@@ -919,7 +919,35 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
  restart:
 	if ((error = sblock(&so->so_snd, SBLOCKWAIT(flags))) != 0)
 		goto out;
+
+
+	// implement timeout
+	tm_printf("implement timeout\n");
+	struct timeval tv;
+	struct timeval sleeptv;
+	int optval = so->so_snd.sb_timeo;
+	if (optval) {
+		tv.tv_sec = optval / hz;
+		tv.tv_usec = (optval % hz) * tick;
+		tm_printf("tv.sec: %d\n", tv.tv_sec);
+		if (inittimeleft(&tv, &sleeptv) == -1) {
+			error = EINVAL;
+			goto out;
+		}
+	}
+
+
 	do {
+
+		// implement timeout
+		if (optval && gettimeleft(&tv, &sleeptv) <= 0) {
+			tm_printf("timeout & return EX_AGAIN\n");
+			error = EX_AGAIN;
+			goto release;
+		}
+
+
+
 		if (so->so_state & SS_CANTSENDMORE) {
 			error = EPIPE;
 			goto release;
@@ -1077,8 +1105,20 @@ sosend(struct socket *so, struct mbuf *addr, struct uio *uio, struct mbuf *top,
 	} while (resid);
 
  release:
+	if (optval && error == EWOULDBLOCK) {
+		goto restart;
+	}
+
+
 	sbunlock(&so->so_snd);
  out:
+
+
+	if (optval && error == EWOULDBLOCK) {
+		goto restart;
+	}
+
+
 	sounlock(so);
 	splx(s);
 	if (top)
@@ -1795,6 +1835,7 @@ sosetopt1(struct socket *so, const struct sockopt *sopt)
 
 		switch (sopt->sopt_name) {
 		case SO_SNDTIMEO:
+			tm_printf("set so->so_snd.sb_timeo: %d", optval);
 			so->so_snd.sb_timeo = optval;
 			break;
 		case SO_RCVTIMEO:
