@@ -627,7 +627,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             PRINTF("[getaddrinfo] ipv4?: %d, in_addr: %s",
                 result->ai_family == AF_INET,
                 inet_ntop(AF_INET, &sock->addr.sin_addr, rbuf, sizeof(rbuf)));
-            
+
             rc = MQTT_CODE_SUCCESS;
         #else
             rc = getaddrinfo(host, NULL, &hints, &result);
@@ -713,7 +713,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             rc = 0;
             break;
         }
-        
+
         case TKERNEL_SOCK_CONN_ASYNC:
         {
             fd_set fdset;
@@ -874,36 +874,34 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
         return MQTT_CODE_ERROR_BAD_ARG;
     }
 
-#ifdef TKERNEL
-    /* Setup timeout */
-    setup_timeout(&tv, timeout_ms);
-    SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
-    rc = so_write(sock->fd, buf, buf_len);
-    if (rc == EX_AGAIN) {
-        PRINTF("timeout_s: %d, timeout_us: %d\n", tv.tv_sec, tv.tv_usec);
-        return MQTT_CODE_CONTINUE;
-    }
-    if (rc < 0) {
-        // Error
-        return rc;
-    }
-    // Success
-    return MQTT_CODE_SUCCESS;
-#else
-
 #ifndef WOLFMQTT_NO_TIMEOUT
     /* Setup timeout */
     setup_timeout(&tv, timeout_ms);
     SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
 #endif
 
+#ifdef TKERNEL
+    int flags = SOCK_FCNTL(sock->fd, F_GETFL, 0);
+    if (flags < 0)
+        PRINTF("fcntl get failed!");
+    flags = SOCK_FCNTL(sock->fd, F_SETFL, flags & ~O_NONBLOCK);
+    if (flags < 0)
+        PRINTF("fcntl set failed!");
+    rc = so_write(sock->fd, buf, buf_len);
+    if (rc < 0) {
+#else
     rc = (int)SOCK_SEND(sock->fd, buf, buf_len, 0);
     if (rc == -1) {
+#endif
         /* Get error */
         socklen_t len = sizeof(so_error);
         SOCK_GETSOCKOPT(sock->fd, SOL_SOCKET, SO_ERROR, &so_error, &len);
         if (so_error == 0) {
+        #ifdef TKERNEL
+            rc = -1;
+        #else
             rc = 0; /* Handle signal */
+        #endif
         }
         else {
         #ifdef WOLFMQTT_NONBLOCK
@@ -920,7 +918,6 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
             PRINTF("NetWrite: Error %d", so_error);
         }
     }
-#endif
 
     (void)timeout_ms;
 
