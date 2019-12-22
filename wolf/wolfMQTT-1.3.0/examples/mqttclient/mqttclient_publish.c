@@ -30,6 +30,8 @@ int mqttclient_publish(MQTTCtx *mqttCtx) {
         goto disconn;
     }
 
+    return rc;
+
 disconn:
     /* Disconnect */
     rc = MqttClient_Disconnect_ex(&mqttCtx->client,

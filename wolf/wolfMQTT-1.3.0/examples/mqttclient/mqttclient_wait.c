@@ -12,7 +12,7 @@ int mqttclient_wait(MQTTCtx *mqttCtx) {
     do {
         /* Try and read packet */
         rc = MqttClient_WaitMessage(&mqttCtx->client,
-                                            mqttCtx->cmd_timeout_ms);
+            mqttCtx->cmd_timeout_ms);
 
         if (rc == MQTT_CODE_ERROR_TIMEOUT) {
             /* Keep Alive */
@@ -25,7 +25,10 @@ int mqttclient_wait(MQTTCtx *mqttCtx) {
                 break;
             }
         }
-        else if (rc != MQTT_CODE_SUCCESS) {
+        else if (rc == MQTT_CODE_SUCCESS) {
+            return rc;
+        }
+        else {
             /* There was an error */
             PRINTF("MQTT Message Wait: %s (%d)",
                 MqttClient_ReturnCodeToString(rc), rc);

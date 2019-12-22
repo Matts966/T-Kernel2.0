@@ -692,8 +692,12 @@ static int NetConnect(void *context, const char* host, word16 port,
             setup_timeout(&tv, timeout_ms);
         #endif /* !WOLFMQTT_NO_TIMEOUT && !TKERNEL */
 
-        #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK)
+        // disable nonblock because command line flag is ignored
+        #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK) && !defined(TKERNEL)
             /* Set socket as non-blocking */
+
+            PRINTF("nonblcok!!!!!!!!!!!!!!!!!!!!!");
+
             tcp_set_nonblocking(&sock->fd);
         #endif
 
@@ -881,12 +885,18 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
 #endif
 
 #ifdef TKERNEL
-    int flags = SOCK_FCNTL(sock->fd, F_GETFL, 0);
-    if (flags < 0)
-        PRINTF("fcntl get failed!");
-    flags = SOCK_FCNTL(sock->fd, F_SETFL, flags & ~O_NONBLOCK);
-    if (flags < 0)
-        PRINTF("fcntl set failed!");
+    fd_set fdset;
+    FD_ZERO(&fdset);
+    FD_SET(sock->fd, &fdset);
+    rc = so_select_ms((int)SELECT_FD(sock->fd), NULL, &fdset, NULL, timeout_ms);
+    if (rc < 0) {
+        return rc;
+    }
+    if (rc == 0) {
+        /* Timeout */
+        return MQTT_CODE_CONTINUE;
+    }
+    /* Success */
     rc = so_write(sock->fd, buf, buf_len);
     if (rc < 0) {
 #else

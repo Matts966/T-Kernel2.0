@@ -36,6 +36,8 @@ int mqttclient_subscribe(MQTTCtx *mqttCtx) {
             mqttCtx->topic->qos, mqttCtx->topic->return_code);
     }
 
+    if (rc == MQTT_CODE_SUCCESS) return rc;
+
 disconn:
     /* Disconnect */
     rc = MqttClient_Disconnect_ex(&mqttCtx->client,
