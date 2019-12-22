@@ -91,7 +91,9 @@ include $(BD)/etc/makerules
 SRC_SYS	= usermain.c
 
 # source files for simple command interpreter
-SRC_SYS	+= appl_main.c command.c examples/mqttnet.c examples/nbclient/nbclient.c examples/mqttexample.c
+SRC_SYS	+= appl_main.c command.c examples/mqttnet.c examples/mqttexample.c
+
+SRC_SYS += examples/mqttclient/mqttclient.c examples/mqttclient/mqttclient_connect.c examples/mqttclient/mqttclient_publish.c examples/mqttclient/mqttclient_subscribe.c examples/mqttclient/mqttclient_wait.c examples/mqttclient/mqttclient_ping.c
 CFLAGS += -DTKERNEL -DWOLFMQTT_DEBUG_SOCKET
 
 # user-level source files

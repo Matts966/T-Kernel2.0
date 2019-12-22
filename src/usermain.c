@@ -3,7 +3,7 @@
 #include <libstr.h>
 #include "wolfmqtt/mqtt_client.h"
 #include "examples/mqttnet.h"
-#include "examples/nbclient/nbclient.h"
+#include "examples/mqttclient/mqttclient.h"
 
 #define NET_CONF_MACHINE  (0)
 #define NET_CONF_EMULATOR (1)
@@ -38,7 +38,7 @@ EXPORT void task_b(INT stacd, VP exinf) {
 EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	MQTTCtx mqttCtx;
 	mqtt_init_ctx(&mqttCtx);
-	mqttCtx.app_name = "nbclient";
+	mqttCtx.app_name = "mqtt_client";
 	mqttCtx.host = "test.mosquitto.org";
 	mqttCtx.port = (word16)XATOI("1883");
 	mqttCtx.cmd_timeout_ms = XATOI("5000");
@@ -47,10 +47,6 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	mqttCtx.topic_name = "test";
 	int rc;
 
-	do {
-		rc = mqttclient_connect(&mqttCtx);
-	} while (rc == MQTT_CODE_CONTINUE);
-
 	while ( 1 ) {
 		tm_putstring((UB*)"Push p to publish, q to quit, w to wait messages. ");
 		char c = tm_getchar(-1);
@@ -58,13 +54,19 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 		if (c == 'p') {
 			mqttclient_publish(&mqttCtx);
 		} else if (c == 'q') {
-			mqttCtx.stat = WMQ_UNSUB;
-			do {
-				rc = mqttclient_test(&mqttCtx);
-			} while (rc == MQTT_CODE_CONTINUE);
+			// mqttCtx.stat = WMQ_UNSUB;
+			// do {
+			// 	rc = mqttclient_test(&mqttCtx);
+			// } while (rc == MQTT_CODE_CONTINUE);
 			break;
 		} else if (c == 'w') {
-			mqttclient_wait_message(&mqttCtx);
+			mqttclient_wait(&mqttCtx);
+		} else if (c == 's') {
+			mqttclient_subscribe(&mqttCtx);
+		} else if (c == 'k') {
+			mqttclient_ping(&mqttCtx);
+		} else if (c == 'c') {
+			mqttclient_connect(&mqttCtx);
 		}
 	}
 

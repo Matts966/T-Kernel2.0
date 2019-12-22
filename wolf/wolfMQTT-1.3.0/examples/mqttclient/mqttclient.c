@@ -50,7 +50,7 @@ char gClientId[MAX_CLIENT_ID_LEN] = {0};
 
 #ifdef WOLFMQTT_DISCONNECT_CB
 /* callback indicates a network error occurred */
-static int mqtt_disconnect_cb(MqttClient* client, int error_code, void* ctx)
+int mqtt_disconnect_cb(MqttClient* client, int error_code, void* ctx)
 {
     (void)client;
     (void)ctx;
@@ -60,7 +60,7 @@ static int mqtt_disconnect_cb(MqttClient* client, int error_code, void* ctx)
 }
 #endif
 
-static int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
+int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
     byte msg_new, byte msg_done)
 {
     byte buf[PRINT_BUFFER_SIZE+1];
