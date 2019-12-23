@@ -40,9 +40,8 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	mqtt_init_ctx(&mqttCtx);
 	mqttCtx.app_name = "mqtt_client";
 	mqttCtx.host = "test.mosquitto.org";
-	mqttCtx.port = (word16)XATOI("1883");
-	mqttCtx.cmd_timeout_ms = XATOI("5000");
-	mqttCtx.qos = (MqttQoS)((byte)XATOI("1"));
+	mqttCtx.port = 1883;
+	mqttCtx.qos = (MqttQoS)(1);
 	mqttCtx.test_mode = 1;
 	mqttCtx.topic_name = "test";
 	int rc;
@@ -67,6 +66,8 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			mqttclient_ping(&mqttCtx);
 		} else if (c == 'c') {
 			mqttclient_connect(&mqttCtx);
+		} else if (c == 't') {
+			mqttclient_test(&mqttCtx);
 		}
 	}
 

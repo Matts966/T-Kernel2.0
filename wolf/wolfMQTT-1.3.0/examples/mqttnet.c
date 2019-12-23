@@ -682,7 +682,7 @@ static int NetConnect(void *context, const char* host, word16 port,
 
         case SOCK_CONN:
         {
-        #if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(TKERNEL)
+        #if !defined(WOLFMQTT_NO_TIMEOUT)
             /* Setup FD's */
             fd_set fdset;
             FD_ZERO(&fdset);
@@ -693,18 +693,23 @@ static int NetConnect(void *context, const char* host, word16 port,
         #endif /* !WOLFMQTT_NO_TIMEOUT && !TKERNEL */
 
         // disable nonblock because command line flag is ignored
-        #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK) && !defined(TKERNEL)
+        #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK)
             /* Set socket as non-blocking */
-
-            PRINTF("nonblcok!!!!!!!!!!!!!!!!!!!!!");
-
             tcp_set_nonblocking(&sock->fd);
         #endif
 
             /* Start connect */
             rc = SOCK_CONNECT(sock->fd, (struct sockaddr*)&sock->addr, sizeof(sock->addr));
 
-        #ifdef TKERNEL
+        #if defined(TKERNEL) && !defined(WOLFMQTT_NONBLOCK)
+            PRINTF("SOCK_CONNECT, rc: %d, %s", rc, MqttClient_ReturnCodeToString(rc));
+            if (rc < 0) {
+                goto exit;
+            }
+            break;
+        #endif /* TKERNEL && !WOLFMQTT_NONBLOCK */
+
+        #if defined(TKERNEL) && defined(WOLFMQTT_NONBLOCK)
             if (rc == EX_INPROGRESS) {
                 rc = MQTT_CODE_CONTINUE;
                 sock->stat = TKERNEL_SOCK_CONN_ASYNC;
@@ -758,7 +763,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             }
             break;
         }
-        #endif /* TKERNEL */
+        #endif /* TKERNEL && WOLFMQTT_NONBLOCK */
 
         default:
         {
