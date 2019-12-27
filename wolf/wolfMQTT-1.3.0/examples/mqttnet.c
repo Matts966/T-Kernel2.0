@@ -104,6 +104,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <strings.h>
+    #include <libstr.h>
 
     #define SOCK_OPEN          so_socket
     #define SOCK_CLOSE         so_close
@@ -114,6 +115,13 @@
     #define SOCK_GETSOCKOPT    so_getsockopt
     #define SOCK_SELECT        so_select
     #define SOCK_FCNTL         so_fcntl
+
+    static void *context;
+    static byte* buf;
+    static int buf_len;
+    static ID semid;
+    static int rc;
+    static byte peek;
 
 #else
     #include <sys/types.h>
@@ -682,7 +690,7 @@ static int NetConnect(void *context, const char* host, word16 port,
 
         case SOCK_CONN:
         {
-        #if !defined(WOLFMQTT_NO_TIMEOUT)
+        #if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(TKERNEL)
             /* Setup FD's */
             fd_set fdset;
             FD_ZERO(&fdset);
@@ -692,7 +700,6 @@ static int NetConnect(void *context, const char* host, word16 port,
             setup_timeout(&tv, timeout_ms);
         #endif /* !WOLFMQTT_NO_TIMEOUT && !TKERNEL */
 
-        // disable nonblock because command line flag is ignored
         #if !defined(WOLFMQTT_NO_TIMEOUT) && defined(WOLFMQTT_NONBLOCK)
             /* Set socket as non-blocking */
             tcp_set_nonblocking(&sock->fd);
@@ -701,15 +708,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             /* Start connect */
             rc = SOCK_CONNECT(sock->fd, (struct sockaddr*)&sock->addr, sizeof(sock->addr));
 
-        #if defined(TKERNEL) && !defined(WOLFMQTT_NONBLOCK)
-            PRINTF("SOCK_CONNECT, rc: %d, %s", rc, MqttClient_ReturnCodeToString(rc));
-            if (rc < 0) {
-                goto exit;
-            }
-            break;
-        #endif /* TKERNEL && !WOLFMQTT_NONBLOCK */
-
-        #if defined(TKERNEL) && defined(WOLFMQTT_NONBLOCK)
+        #ifdef TKERNEL
             if (rc == EX_INPROGRESS) {
                 rc = MQTT_CODE_CONTINUE;
                 sock->stat = TKERNEL_SOCK_CONN_ASYNC;
@@ -763,7 +762,7 @@ static int NetConnect(void *context, const char* host, word16 port,
             }
             break;
         }
-        #endif /* TKERNEL && WOLFMQTT_NONBLOCK */
+        #endif /* TKERNEL */
 
         default:
         {
@@ -796,7 +795,7 @@ static int SN_NetConnect(void *context, const char* host, word16 port,
     MQTTCtx* mqttCtx = sock->mqttCtx;
 
     PRINTF("NetConnect: Host %s, Port %u, Timeout %d ms, Use TLS %d\n",
-        host, port, timeout_ms, mqttCtx->use_tls);
+        host, port, timeout_ms, mqttCtx->use_tls);N
 
     /* Get address information for host and locate IPv4 */
     XMEMSET(&hints, 0, sizeof(struct addrinfo));
@@ -869,39 +868,44 @@ static int SN_NetConnect(void *context, const char* host, word16 port,
 }
 #endif
 
-static int NetWrite(void *context, const byte* buf, int buf_len,
-    int timeout_ms)
-{
-    SocketContext *sock = (SocketContext*)context;
+#ifdef TKERNEL
+EXPORT void NetWrite_ex(INT stacd, VP exinf) {
+#else
+static int NetWrite_ex(void *context, byte* buf, int buf_len,
+    int timeout_ms) {
+#endif
+       SocketContext *sock = (SocketContext*)context;
+#ifndef TKERNEL
     int rc;
+#endif
     SOERROR_T so_error = 0;
 #ifndef WOLFMQTT_NO_TIMEOUT
     struct timeval tv;
 #endif
 
     if (context == NULL || buf == NULL || buf_len <= 0) {
+#ifdef TKERNEL
+        tk_sig_sem(semid, 1);
+        tk_ext_tsk();
+        return;
+#endif
         return MQTT_CODE_ERROR_BAD_ARG;
     }
 
-#ifndef WOLFMQTT_NO_TIMEOUT
+#if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(TKERNEL)
     /* Setup timeout */
     setup_timeout(&tv, timeout_ms);
     SOCK_SETSOCKOPT(sock->fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(tv));
 #endif
 
 #ifdef TKERNEL
-    fd_set fdset;
-    FD_ZERO(&fdset);
-    FD_SET(sock->fd, &fdset);
-    rc = so_select_ms((int)SELECT_FD(sock->fd), NULL, &fdset, NULL, timeout_ms);
-    if (rc < 0) {
-        return rc;
-    }
-    if (rc == 0) {
-        /* Timeout */
-        return MQTT_CODE_CONTINUE;
-    }
-    /* Success */
+    int flags = SOCK_FCNTL(sock->fd, F_GETFL, 0);
+    if (flags < 0)
+        PRINTF("fcntl get failed!");
+    flags = SOCK_FCNTL(sock->fd, F_SETFL, flags & ~O_NONBLOCK);
+    if (flags < 0)
+        PRINTF("fcntl set failed!");
+
     rc = so_write(sock->fd, buf, buf_len);
     if (rc < 0) {
 #else
@@ -926,6 +930,11 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
                 } else {
                     PRINTF("NetWrite: EAGAIN");
                 }
+            #ifdef TKERNEL
+                tk_sig_sem(semid, 1);
+                tk_ext_tsk();
+                return;
+            #endif
                 return MQTT_CODE_CONTINUE;
             }
         #endif
@@ -933,17 +942,61 @@ static int NetWrite(void *context, const byte* buf, int buf_len,
             PRINTF("NetWrite: Error %d", so_error);
         }
     }
-
-    (void)timeout_ms;
-
+#ifdef TKERNEL
+    tk_sig_sem(semid, 1);
+    tk_ext_tsk();
+    return;
+#endif
     return rc;
 }
 
+static int NetWrite(void *_context, const byte* _buf, int _buf_len,
+    int _timeout_ms)
+{
+#ifdef TKERNEL
+    T_CTSK t_ctsk;
+	ID objid;
+	t_ctsk.tskatr = TA_HLNG | TA_DSNAME;
+
+	t_ctsk.stksz = 1024;
+	t_ctsk.itskpri = 2;
+
+    T_CSEM csem;
+	csem.maxsem = 1;
+	csem.isemcnt = 0;
+	csem.sematr = TA_TFIFO | TA_FIRST;
+    semid = tk_cre_sem(&csem);
+    context = _context;
+    buf = _buf;
+    buf_len = _buf_len;
+
+	t_ctsk.task = NetWrite_ex;
+	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+    tk_sta_tsk(objid, 0);
+    tk_wai_sem(semid, 1, _timeout_ms);
+    tk_del_tsk(objid);
+    return rc;
+#else
+    return NetWrite_ex(_context, _buf, _buf_len, _timeout_ms);
+#endif
+}
+
+#ifdef TKERNEL
+EXPORT void NetRead_ex(INT stacd, VP exinf)
+#else
 static int NetRead_ex(void *context, byte* buf, int buf_len,
     int timeout_ms, byte peek)
+#endif
 {
     SocketContext *sock = (SocketContext*)context;
-    int rc = -1, timeout = 0;
+#ifdef TKERNEL
+    rc = MQTT_CODE_ERROR_TIMEOUT;
+#else
+    int rc = -1;
+#endif
+    int timeout = 0;
     SOERROR_T so_error = 0;
     int bytes = 0;
     int flags = 0;
@@ -961,7 +1014,7 @@ static int NetRead_ex(void *context, byte* buf, int buf_len,
         flags |= MSG_PEEK;
     }
 
-#if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(WOLFMQTT_NONBLOCK)
+#if !defined(WOLFMQTT_NO_TIMEOUT) && !defined(WOLFMQTT_NONBLOCK) && !defined(TKERNEL)
     /* Setup timeout and FD's */
     setup_timeout(&tv, timeout_ms);
     FD_ZERO(&recvfds);
@@ -972,9 +1025,10 @@ static int NetRead_ex(void *context, byte* buf, int buf_len,
     #ifdef WOLFMQTT_ENABLE_STDIN_CAP
         FD_SET(STDIN, &recvfds);
     #endif
-
 #else
+#ifndef TKERNEL
     (void)timeout_ms;
+#endif
 #endif /* !WOLFMQTT_NO_TIMEOUT && !WOLFMQTT_NONBLOCK */
 
     /* Loop until buf_len has been read, error or timeout */
@@ -1007,7 +1061,13 @@ static int NetRead_ex(void *context, byte* buf, int buf_len,
             }
         #ifdef WOLFMQTT_ENABLE_STDIN_CAP
             else if (FD_ISSET(STDIN, &recvfds)) {
+            #ifdef TKERNEL
+                rc = MQTT_CODE_STDIN_WAKE
+                tk_sig_sem(semid, 1);
+                tk_ext_tsk();
+            #else
                 return MQTT_CODE_STDIN_WAKE;
+            #endif
             }
         #endif
             if (FD_ISSET(sock->fd, &errfds)) {
@@ -1041,7 +1101,13 @@ exit:
         else {
         #ifdef WOLFMQTT_NONBLOCK
             if (so_error == EWOULDBLOCK || so_error == EAGAIN) {
+            #ifdef TKERNEL
+                tk_sig_sem(semid, 1);
+                tk_ext_tsk();
+                return;
+            #else
                 return MQTT_CODE_CONTINUE;
+            #endif
             }
         #endif
             rc = MQTT_CODE_ERROR_NETWORK;
@@ -1052,12 +1118,48 @@ exit:
         rc = bytes;
     }
 
+#ifdef TKERNEL
+    tk_sig_sem(semid, 1);
+    tk_ext_tsk();
+    return;
+#else
     return rc;
+#endif
 }
 
-static int NetRead(void *context, byte* buf, int buf_len, int timeout_ms)
+static int NetRead(void *_context, byte* _buf, int _buf_len, int _timeout_ms)
 {
-    return NetRead_ex(context, buf, buf_len, timeout_ms, 0);
+#ifdef TKERNEL
+    T_CTSK t_ctsk;
+	ID objid;
+	t_ctsk.tskatr = TA_HLNG | TA_DSNAME;
+
+	t_ctsk.stksz = 1024;
+	t_ctsk.itskpri = 2;
+
+    T_CSEM csem;
+	csem.maxsem = 1;
+	csem.isemcnt = 0;
+	csem.sematr = TA_TFIFO | TA_FIRST;
+    semid = tk_cre_sem(&csem);
+    context = _context;
+    buf = _buf;
+    buf_len = _buf_len;
+    peek = 0;
+
+	t_ctsk.task = NetRead_ex;
+	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+
+    tk_sta_tsk(objid, 0);
+    tk_wai_sem(semid, 1, _timeout_ms);
+    tk_del_tsk(objid);
+
+    return rc;
+#else
+    return NetRead_ex(_context, _buf, _buf_len, _timeout_ms, 0);
+#endif
 }
 
 #ifdef WOLFMQTT_SN

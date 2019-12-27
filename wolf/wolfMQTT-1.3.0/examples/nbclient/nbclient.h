@@ -24,9 +24,13 @@
 
 #include "examples/mqttexample.h"
 
-
 /* Exposed functions */
 int mqttclient_test(MQTTCtx *mqttCtx);
 
+int mqttclient_connect(MQTTCtx *mqttCtx);
+int mqttclient_ping(MQTTCtx *mqttCtx);
+int mqttclient_publish(MQTTCtx *mqttCtx);
+int mqttclient_subscribe(MQTTCtx *mqttCtx);
+int mqttclient_wait(MQTTCtx *mqttCtx);
 
 #endif /* WOLFMQTT_NBCLIENT_H */
