@@ -25,7 +25,7 @@ COPY emulator/tef_em1d/Linux/* $QEMU_BIN_DIR/
 COPY emulator/tef_em1d/Image/* $QEMU_BIN_DIR/
 ADD emulator/tef_em1d/build/qemu-0.12.4-tef_em1d.tar.gz /usr/local/srcpkg/tool/qemu/
 WORKDIR /usr/local/srcpkg/tool/qemu/qemu-0.12.4-tef_em1d
-RUN --mount=type=cache,target=/cache ccache -s && sleep 3 && ./configure \
+RUN --mount=type=cache,target=/cache ./configure \
     --target-list=arm-softmmu --disable-blobs \
     --prefix=/usr/local/srcpkg/tool/qemu && make install
 RUN mv $QEMU_BIN_DIR/qemu-system-arm $QEMU_BIN_DIR/qemu-tef_em1d
@@ -37,14 +37,14 @@ RUN cd /usr/local/srcpkg/t2ex_source \
 # Use this working directory instead of below if extension is not needed.
 # WORKDIR /usr/local/srcpkg/tkernel_source/kernel/sysmain/build/srcpkg
 WORKDIR $BD/kernel/sysmain/build_t2ex/tef_em1d
-RUN --mount=type=cache,target=/cache ccache -s && ls /cache && sleep 3 && make req
+RUN --mount=type=cache,target=/cache make req
 
 FROM build-kernel as build-wolfMQTT
 COPY --from=build-kernel $BD/kernel/sysmain/build_t2ex/tef_em1d \
     $BD/kernel/sysmain/build_t2ex/tef_em1d
 COPY wolf/wolfMQTT-$WOLFMQTT_VERSION /usr/local/wolfMQTT-$WOLFMQTT_VERSION
 WORKDIR /usr/local
-RUN --mount=type=cache,target=/cache ccache -s && sleep 3 && cd wolfMQTT-$WOLFMQTT_VERSION && \
+RUN --mount=type=cache,target=/cache cd wolfMQTT-$WOLFMQTT_VERSION && \
     ./autogen.sh && ./configure --disable-tls --enable-nonblock \
         --prefix=$BD --host=arm-non-eabi \
         CFLAGS="-mcpu=arm1176jzf-s -msoft-float -mfpu=vfp -mthumb-interwork \
@@ -68,7 +68,7 @@ COPY wolf/wolfMQTT-$WOLFMQTT_VERSION/examples/ $BD/kernel/sysmain/src/examples/
 COPY docker-entrypoint.sh $QEMU_BIN_DIR/
 RUN chmod +x $QEMU_BIN_DIR/docker-entrypoint.sh
 WORKDIR $BD/kernel/sysmain/build_t2ex/tef_em1d
-RUN --mount=type=cache,target=/cache ccache -s && ls /cache &&  sleep 3 && make emu
+RUN --mount=type=cache,target=/cache make emu
 ENTRYPOINT [ "/usr/local/srcpkg/tool/qemu/bin/docker-entrypoint.sh" ]
 # Remove this CMD if extension is not needed.
 CMD [ "false", "rom_t2ex.bin" ]
