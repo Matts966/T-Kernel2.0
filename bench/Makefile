@@ -1,4 +1,4 @@
 bench:
-	time ./bench.sh
+	./bench.sh
 
 PHONY: bench
