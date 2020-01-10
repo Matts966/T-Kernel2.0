@@ -5,10 +5,10 @@
 #include "examples/mqttnet.h"
 #include "examples/nbclient/nbclient.h"
 
-#define NET_CONF_MACHINE  (0)
-#define NET_CONF_EMULATOR (1)
 #define NET_CONF_STATIC (0)
 #define NET_CONF_DHCP   (1)
+#define NET_CONF_MACHINE  (0)
+#define NET_CONF_EMULATOR (1)
 
 typedef enum { TASK_A, TASK_B, TASK_MQTT_SHELL, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
