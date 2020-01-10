@@ -13,22 +13,22 @@ TIMEFORMAT=%R
 
 # with cache
 for ((i=1; i<=5; i++)); do
-    git checkout c5281879a7d784713bbe08b774ff79bd48b90d28
+    git checkout 6d46c735b348ef56d60fe92df60f00bc9483d1a1
     dir=$tmpD/with-cache/full
     (cd .. && { time make build-without-cache ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
 
-    git checkout 2d8154b7133e23f589c6ea24fa517ce0c6970041
+    git checkout 84e8eea59ac31e08d7a804758640abe388212a2f
     dir=$tmpD/with-cache/kernel
     (cd .. && { time make build ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
 
-    git checkout be890ae9628f3e2273152e1c98ea721831aa0b3d
+    git checkout 557213b177b55399746b44d73283df0c2eccf736
     dir=$tmpD/with-cache/middleware
     (cd .. && { time make build ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
 
-    git checkout f05b37494f4e80a17693c5145ab3bfee7b3c88d5
+    git checkout 2e8b71bf3eb52da9eaf2429c26e040887a0b5bc6
     dir=$tmpD/with-cache/user
     (cd .. && { time make build ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
@@ -85,3 +85,6 @@ echo "full build, $(get_average simple full), $(get_average with-cache full)" >>
 echo "change in kernel source, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
 echo "change in middleware source, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
 echo "change in user source, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
+
+# analysis url
+# https://colab.research.google.com/drive/1uC00UApcrfsqooM7WtJht3u6xevcbapu
