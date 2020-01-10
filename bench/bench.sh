@@ -86,5 +86,7 @@ echo "change in kernel source, $(get_average simple kernel), $(get_average with-
 echo "change in middleware source, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
 echo "change in user source, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
 
+cat $tmpD/result.csv
+
 # analysis url
 # https://colab.research.google.com/drive/1uC00UApcrfsqooM7WtJht3u6xevcbapu
