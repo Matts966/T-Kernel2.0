@@ -618,8 +618,8 @@ static int NetConnect(void *context, const char* host, word16 port,
             bzero(&hints, sizeof hints);
             hints.ai_family = AF_INET;
             hints.ai_socktype = SOCK_STREAM;
-            rc = so_getaddrinfo(host, NULL, &hints, &result, buf,
-                sizeof buf, NULL);
+            rc = so_getaddrinfo_ms(host, NULL, &hints, &result, buf,
+                sizeof buf, timeout_ms);
             PRINTF("resolv_host: so_getaddrinfo = %d(%d, %d)",
                 rc, MERCD(rc), SERCD(rc));
             if ( rc < 0 || result == NULL ) {

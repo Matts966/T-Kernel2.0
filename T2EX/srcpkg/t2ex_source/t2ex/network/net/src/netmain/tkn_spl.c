@@ -75,13 +75,51 @@ EXPORT INT	tkn_task_base_pri;
 int
 tkn_spl_lock(int level)
 {
-	return tk_loc_mtx(spl_mtxid, TMO_FEVR);
+	int     oldlevel;
+
+	if ( level < 0 ) {
+        panic("tkn_spl_lock: invalid level %d.\n", level);
+	}
+
+	if ( level > 0 ) {
+		tk_loc_mtx(spl_mtxid, TMO_FEVR);
+	}
+
+	LockSPL();
+
+	oldlevel = spl_level;
+	if ( level > spl_level ) {
+		spl_level = level;
+	}
+
+	UnlockSPL();
+
+	return oldlevel;
 }
 
 int
 tkn_spl_unlock(int level)
 {
-	return tk_unl_mtx(spl_mtxid);
+	int oldlevel;
+
+	if ( level < 0 ) {
+		panic("tkn_spl_unlock: invalid level %d.\n", level);
+	}
+
+	LockSPL();
+
+	oldlevel = spl_level;
+	if ( level < spl_level ) {
+		spl_level = level;
+	}
+
+	if ( spl_level == 0 ) {
+		tk_unl_mtx(spl_mtxid);
+	}
+
+	UnlockSPL();
+
+	return oldlevel;
 }
 
 /* initialize spl system */
