@@ -94,7 +94,6 @@
         #error wolfMQTT must be built with WOLFMQTT_NONBLOCK defined for Harmony
     #endif
 
-/* Linux */
 #elif defined(TKERNEL)
     #include <tk/tkernel.h>
 
@@ -123,6 +122,7 @@
     static int rc;
     static byte peek;
 
+/* Linux */
 #else
     #include <sys/types.h>
     #include <sys/socket.h>
