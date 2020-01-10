@@ -75,7 +75,7 @@ ASFLAGS +=
 LDFLAGS +=
 
 ### C  ###
-CC := $(GNUARM_2)/bin/gcc4arm -std=c99
+CC := ccache $(GNUARM_2)/bin/gcc4arm -std=c99
 OUTPUT_OPTION = -o $@
 ifeq ($(mode), debug)
   CFLAGS += -g
@@ -103,7 +103,7 @@ LINK.c = $(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS)
 	$(CC) $(TARGET_ARCH) $(CFLAGS) $(CPPFLAGS) -E $< $(OUTPUT_OPTION)
 
 ### C++ ###
-CXX := $(GNUARM_2)/bin/gcc4arm
+CXX := ccache $(GNUARM_2)/bin/gcc4arm
 CXXFLAGS = $(CFLAGS)
 
 COMPILE.cc = $(CXX) $(TARGET_ARCH) $(CXXFLAGS) $(CPPFLAGS) -c
