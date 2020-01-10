@@ -68,10 +68,10 @@ get_average_test() {
 }
 
 echo "build average time, normal, with cache" >> $tmpD/result.csv
-echo "full build, $(get_average simple full), $(get_average with-cache full)" >> $tmpD/result.csv
-echo "change in kernel source, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
-echo "change in middleware source, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
-echo "change in user source, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
+echo "full, $(get_average simple full), $(get_average with-cache full)" >> $tmpD/result.csv
+echo "kernel, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
+echo "middleware, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
+echo "user, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
 
 cat $tmpD/result.csv
 
