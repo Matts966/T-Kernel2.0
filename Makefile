@@ -8,6 +8,8 @@ start:
 	docker run --rm -it qt
 build:
 	DOCKER_BUILDKIT=1 docker build -t qt .
-build-without-cache:
-	DOCKER_BUILDKIT=1 docker build -t qt --no-cache .
+build-plain:
+	DOCKER_BUILDKIT=1 docker build -t qt --progress plain .
+build-without-cache-plain:
+	DOCKER_BUILDKIT=1 docker build -t qt --no-cache --progress plain .
 .PHONY: start restart build
