@@ -27,14 +27,15 @@
 
 #ifdef NUM_MPFID
 
-EXPORT ID	max_mpfid;	/* Maximum fixed size memory pool ID */
-
 /*
  * Fixed size memory pool control block
  */
 typedef struct free_list {
 	struct free_list *next;
 } FREEL;
+
+
+EXPORT ID	max_mpfid;	/* Maximum fixed size memory pool ID */
 
 typedef struct fix_memorypool_control_block {
 	QUEUE	wait_queue;	/* Memory pool wait queue */
