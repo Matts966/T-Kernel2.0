@@ -1,5 +1,5 @@
 #!/bin/bash
-tmpD=(mktemp -d)
+tmpD=$(mktemp -d)
 
 # with cache
 git checkout master
@@ -55,12 +55,20 @@ done
 
 echo "temporary directory: $tmpD"
 
-get_averate() {
-    $(cat $tempD/$1/$2/result.txt | python bench/average.py)
+get_average() {
+    $(cat $tempD/$1/$2/result.txt | python -c "import sys; \
+        sum = 0.0 \
+        count = 0 \
+         \
+        for line in sys.stdin: \
+            count += 1 \
+            sum += float(line) \
+         \
+        sys.stdout.write(str(sum / count))");
 }
 
 echo "build average time, normal, with cache" >> $tmpD/result.csv
-echo "full build, $(get_averate simple full), $(get_averate with-cache full)" >> $tmpD/result.csv
-echo "change in kernel source, $(get_averate simple kernel), $(get_averate with-cache kernel)" >> $tmpD/result.csv
-echo "change in middleware source, $(get_averate simple middleware), $(get_averate with-cache middleware)" >> $tmpD/result.csv
-echo "change in user source, $(get_averate simple user), $(get_averate with-cache user)" >> $tmpD/result.csv
+echo "full build, $(get_average simple full), $(get_average with-cache full)" >> $tmpD/result.csv
+echo "change in kernel source, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
+echo "change in middleware source, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
+echo "change in user source, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
