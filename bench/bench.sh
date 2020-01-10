@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -eu
 tmpD=$(mktemp -d)
 
 mkdir -p $tmpD/with-cache/full
@@ -35,7 +35,7 @@ for ((i=1; i<=5; i++)); do
 done
 
 # simple
-for ((i=1; i<=5; i++)); do 
+for ((i=1; i<=5; i++)); do
     git checkout 8ed83ee1ba89e7a46a6b5d7a3e59d4d16e48281e
     dir=$tmpD/simple/full
     (cd .. && { time make build-without-cache ; } 2> $dir/$i \
@@ -45,7 +45,7 @@ for ((i=1; i<=5; i++)); do
     dir=$tmpD/simple/kernel
     (cd .. && { time make build ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
-    
+
     git checkout 530e81f4d886a8279e59be913afa7550abef8710
     dir=$tmpD/simple/middleware
     (cd .. && { time make build ; } 2> $dir/$i \
@@ -58,19 +58,6 @@ for ((i=1; i<=5; i++)); do
 done
 
 echo "temporary directory: $tmpD"
-
-get_average() {
-    $(cat $tempD/$1/$2/result.txt | python -c "import sys; \
-        sum = 0.0 \
-        count = 0 \
-         \
-        for line in sys.stdin: \
-            count += 1 \
-            sum += float(line) \
-         \
-        sys.stdout.write(str(sum / count))" \
-    )
-}
 
 get_average() {
     cat $tmpD/$1/$2/result.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
