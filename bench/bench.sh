@@ -10,32 +10,15 @@ mkdir -p $tmpD/simple/kernel
 mkdir -p $tmpD/simple/user
 mkdir -p $tmpD/simple/middleware
 TIMEFORMAT=%R
+ITERATION=10
 
-# with cache
-for ((i=1; i<=5; i++)); do
-    git checkout 6d46c735b348ef56d60fe92df60f00bc9483d1a1
-    dir=$tmpD/with-cache/full
-    (cd .. && { time make build-without-cache ; } 2> $dir/$i \
-        && cat $dir/$i | tail -n1 >> $dir/result.txt)
-
-    git checkout 84e8eea59ac31e08d7a804758640abe388212a2f
-    dir=$tmpD/with-cache/kernel
-    (cd .. && { time make build ; } 2> $dir/$i \
-        && cat $dir/$i | tail -n1 >> $dir/result.txt)
-
-    git checkout 557213b177b55399746b44d73283df0c2eccf736
-    dir=$tmpD/with-cache/middleware
-    (cd .. && { time make build ; } 2> $dir/$i \
-        && cat $dir/$i | tail -n1 >> $dir/result.txt)
-
-    git checkout 2e8b71bf3eb52da9eaf2429c26e040887a0b5bc6
-    dir=$tmpD/with-cache/user
-    (cd .. && { time make build ; } 2> $dir/$i \
-        && cat $dir/$i | tail -n1 >> $dir/result.txt)
+# warmup
+for ((i=1; i<=$ITERATION; i++)); do
+    (cd .. && make build)
 done
 
 # simple
-for ((i=1; i<=5; i++)); do
+for ((i=1; i<=$ITERATION; i++)); do
     git checkout 8ed83ee1ba89e7a46a6b5d7a3e59d4d16e48281e
     dir=$tmpD/simple/full
     (cd .. && { time make build-without-cache ; } 2> $dir/$i \
@@ -53,6 +36,29 @@ for ((i=1; i<=5; i++)); do
 
     git checkout ff50e8edc3d24ac4ea48caf3b505df9cb814c768
     dir=$tmpD/simple/user
+    (cd .. && { time make build ; } 2> $dir/$i \
+        && cat $dir/$i | tail -n1 >> $dir/result.txt)
+done
+
+# with cache
+for ((i=1; i<=$ITERATION; i++)); do
+    git checkout 6d46c735b348ef56d60fe92df60f00bc9483d1a1
+    dir=$tmpD/with-cache/full
+    (cd .. && { time make build-without-cache ; } 2> $dir/$i \
+        && cat $dir/$i | tail -n1 >> $dir/result.txt)
+
+    git checkout 84e8eea59ac31e08d7a804758640abe388212a2f
+    dir=$tmpD/with-cache/kernel
+    (cd .. && { time make build ; } 2> $dir/$i \
+        && cat $dir/$i | tail -n1 >> $dir/result.txt)
+
+    git checkout 557213b177b55399746b44d73283df0c2eccf736
+    dir=$tmpD/with-cache/middleware
+    (cd .. && { time make build ; } 2> $dir/$i \
+        && cat $dir/$i | tail -n1 >> $dir/result.txt)
+
+    git checkout 2e8b71bf3eb52da9eaf2429c26e040887a0b5bc6
+    dir=$tmpD/with-cache/user
     (cd .. && { time make build ; } 2> $dir/$i \
         && cat $dir/$i | tail -n1 >> $dir/result.txt)
 done
