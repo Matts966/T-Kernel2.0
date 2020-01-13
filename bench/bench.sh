@@ -14,7 +14,7 @@ ITERATION=10
 
 # warmup
 for ((i=1; i<=$ITERATION; i++)); do
-    (cd .. && make build)
+    (cd .. && make build-without-cache)
 done
 
 # simple
