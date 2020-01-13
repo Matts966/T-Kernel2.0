@@ -19,6 +19,8 @@ done
 
 # simple
 for ((i=1; i<=$ITERATION; i++)); do
+    docker builder prune -af
+
     git checkout 8ed83ee1ba89e7a46a6b5d7a3e59d4d16e48281e
     dir=$tmpD/simple/full
     (cd .. && { time make build-without-cache ; } 2> $dir/$i \
@@ -42,6 +44,8 @@ done
 
 # with cache
 for ((i=1; i<=$ITERATION; i++)); do
+    docker builder prune -af
+
     git checkout 6d46c735b348ef56d60fe92df60f00bc9483d1a1
     dir=$tmpD/with-cache/full
     (cd .. && { time make build-without-cache ; } 2> $dir/$i \
