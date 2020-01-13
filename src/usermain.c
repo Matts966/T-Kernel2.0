@@ -25,18 +25,14 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 
 	while ( 1 ) {
 		tm_putstring((UB*)"- Push p to publish a test message.\n");
-		tm_putstring((UB*)"- Push q to quit.\n");
 		tm_putstring((UB*)"- Push w to wait messages.\n");
 		tm_putstring((UB*)"- Push s to subscribe to a test topic.\n");
 		tm_putstring((UB*)"- Push k to keep connection.\n");
 		tm_putstring((UB*)"- Push c to connect.\n");
-		tm_putstring((UB*)"- Push t to test all the commands.");
 		char c = tm_getchar(-1);
 		tm_putstring("\n");
 		if (c == 'p') {
 			mqttclient_publish(&mqttCtx);
-		} else if (c == 'q') {
-			break;
 		} else if (c == 'w') {
 			mqttclient_wait(&mqttCtx);
 		} else if (c == 's') {
@@ -49,8 +45,6 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			do {
 				rc = mqttclient_connect(&mqttCtx);
 			} while (rc == MQTT_CODE_CONTINUE);
-		} else if (c == 't') {
-			mqttclient_test(&mqttCtx);
 		}
 	}
 
