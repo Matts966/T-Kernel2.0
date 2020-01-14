@@ -33,5 +33,6 @@ int mqttclient_ping(MQTTCtx *mqttCtx);
 int mqttclient_publish(MQTTCtx *mqttCtx);
 int mqttclient_subscribe(MQTTCtx *mqttCtx);
 int mqttclient_wait(MQTTCtx *mqttCtx);
+int mqttclient_free(MQTTCtx *mqttCtx);
 
 #endif /* WOLFMQTT_MQTTCLIENT_H */

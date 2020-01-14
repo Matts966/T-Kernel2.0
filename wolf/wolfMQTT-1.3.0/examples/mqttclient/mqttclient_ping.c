@@ -14,4 +14,6 @@ int mqttclient_ping(MQTTCtx *mqttCtx) {
         PRINTF("MQTT Ping Keep Alive Error: %s (%d)",
             MqttClient_ReturnCodeToString(rc), rc);
     }
+
+    return rc;
 }

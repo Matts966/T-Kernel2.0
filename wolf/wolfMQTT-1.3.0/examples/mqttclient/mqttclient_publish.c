@@ -17,8 +17,9 @@ int mqttclient_publish(MQTTCtx *mqttCtx) {
     mqttCtx->publish.duplicate = 0;
     mqttCtx->publish.topic_name = mqttCtx->topic_name;
     mqttCtx->publish.packet_id = mqtt_get_packetid();
-    mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
-    mqttCtx->publish.total_len = (word16)XSTRLEN(TEST_MESSAGE);
+    if (mqttCtx->publish.buffer == NULL) mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
+    mqttCtx->publish.total_len = (word16)XSTRLEN(mqttCtx->publish.buffer);
+
     do {
         rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
     } while (rc == MQTT_CODE_CONTINUE);
@@ -27,33 +28,8 @@ int mqttclient_publish(MQTTCtx *mqttCtx) {
         mqttCtx->publish.topic_name,
         MqttClient_ReturnCodeToString(rc), rc);
     if (rc != MQTT_CODE_SUCCESS) {
-        goto disconn;
+        return rc;
     }
-
-    return rc;
-
-disconn:
-    /* Disconnect */
-    rc = MqttClient_Disconnect_ex(&mqttCtx->client,
-           &mqttCtx->disconnect);
-    PRINTF("MQTT Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-    if (rc < 0) {
-        goto exit;
-    }
-    rc = MqttClient_NetDisconnect(&mqttCtx->client);
-    PRINTF("MQTT Socket Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-
-exit:
-    /* Free resources */
-    if (mqttCtx->tx_buf) WOLFMQTT_FREE(mqttCtx->tx_buf);
-    if (mqttCtx->rx_buf) WOLFMQTT_FREE(mqttCtx->rx_buf);
-
-    /* Cleanup network */
-    MqttClientNet_DeInit(&mqttCtx->net);
-
-    MqttClient_DeInit(&mqttCtx->client);
 
     return rc;
 }

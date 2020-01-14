@@ -20,12 +20,15 @@ int mqttclient_subscribe(MQTTCtx *mqttCtx) {
             sizeof(mqttCtx->topics) / sizeof(MqttTopic);
     mqttCtx->subscribe.topics = mqttCtx->topics;
 
-    rc = MqttClient_Subscribe(&mqttCtx->client, &mqttCtx->subscribe);
+    do {
+        rc = MqttClient_Subscribe(&mqttCtx->client, &mqttCtx->subscribe);
+    } while (rc == MQTT_CODE_CONTINUE);
 
     PRINTF("MQTT Subscribe: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);
+
     if (rc != MQTT_CODE_SUCCESS) {
-        goto disconn;
+        return rc;
     }
 
     /* show subscribe results */
@@ -35,31 +38,6 @@ int mqttclient_subscribe(MQTTCtx *mqttCtx) {
             mqttCtx->topic->topic_filter,
             mqttCtx->topic->qos, mqttCtx->topic->return_code);
     }
-
-    if (rc == MQTT_CODE_SUCCESS) return rc;
-
-disconn:
-    /* Disconnect */
-    rc = MqttClient_Disconnect_ex(&mqttCtx->client,
-           &mqttCtx->disconnect);
-    PRINTF("MQTT Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-    if (rc < 0) {
-        goto exit;
-    }
-    rc = MqttClient_NetDisconnect(&mqttCtx->client);
-    PRINTF("MQTT Socket Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-
-exit:
-    /* Free resources */
-    if (mqttCtx->tx_buf) WOLFMQTT_FREE(mqttCtx->tx_buf);
-    if (mqttCtx->rx_buf) WOLFMQTT_FREE(mqttCtx->rx_buf);
-
-    /* Cleanup network */
-    MqttClientNet_DeInit(&mqttCtx->net);
-
-    MqttClient_DeInit(&mqttCtx->client);
 
     return rc;
 }

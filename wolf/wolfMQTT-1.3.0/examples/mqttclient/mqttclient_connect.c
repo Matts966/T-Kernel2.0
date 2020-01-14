@@ -11,7 +11,7 @@ int mqtt_message_cb(MqttClient *client, MqttMessage *msg,
 int mqtt_disconnect_cb(MqttClient* client, int error_code, void* ctx);
 
 int mqttclient_connect(MQTTCtx *mqttCtx) {
-    int rc = MQTT_CODE_SUCCESS, i;
+    int rc = MQTT_CODE_SUCCESS;
 
     PRINTF("MQTT Client: QoS %d, Use TLS %d", mqttCtx->qos,
             mqttCtx->use_tls);
@@ -24,7 +24,7 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
     } while(rc == MQTT_CODE_CONTINUE);
 
     if (rc != MQTT_CODE_SUCCESS) {
-        goto exit;
+        return rc;
     }
 
     /* setup tx/rx buffers */
@@ -43,7 +43,7 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
     PRINTF("MQTT Init: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);
     if (rc != MQTT_CODE_SUCCESS) {
-        goto exit;
+        return rc;
     }
     /* The client.ctx will be stored in the cert callback ctx during
        MqttSocket_Connect for use by mqtt_tls_verify_cb */
@@ -55,7 +55,7 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
             mqtt_disconnect_cb, NULL);
     } while(rc == MQTT_CODE_CONTINUE);
     if (rc != MQTT_CODE_SUCCESS) {
-        goto exit;
+        return rc;
     }
 
     /* Connect to broker */
@@ -68,7 +68,7 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
     PRINTF("MQTT Socket Connect: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);
     if (rc != MQTT_CODE_SUCCESS) {
-        goto exit;
+        return rc;
     }
 
     /* Build connect packet */
@@ -103,7 +103,7 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
     PRINTF("MQTT Connect: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);
     if (rc != MQTT_CODE_SUCCESS) {
-        goto disconn;
+        return rc;
     }
 
     /* Validate Connect Ack info */
@@ -113,35 +113,6 @@ int mqttclient_connect(MQTTCtx *mqttCtx) {
             MQTT_CONNECT_ACK_FLAG_SESSION_PRESENT) ?
             1 : 0
     );
-
-    if (rc == MQTT_CODE_SUCCESS) return rc;
-
-disconn:
-    /* Disconnect */
-    do {
-        rc = MqttClient_Disconnect_ex(&mqttCtx->client,
-           &mqttCtx->disconnect);
-    } while(rc == MQTT_CODE_CONTINUE);
-    PRINTF("MQTT Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-    if (rc < 0) {
-        goto exit;
-    }
-    do {
-        rc = MqttClient_NetDisconnect(&mqttCtx->client);
-    } while(rc == MQTT_CODE_CONTINUE);
-    PRINTF("MQTT Socket Disconnect: %s (%d)",
-        MqttClient_ReturnCodeToString(rc), rc);
-
-exit:
-    /* Free resources */
-    if (mqttCtx->tx_buf) WOLFMQTT_FREE(mqttCtx->tx_buf);
-    if (mqttCtx->rx_buf) WOLFMQTT_FREE(mqttCtx->rx_buf);
-
-    /* Cleanup network */
-    MqttClientNet_DeInit(&mqttCtx->net);
-
-    MqttClient_DeInit(&mqttCtx->client);
 
     return rc;
 }

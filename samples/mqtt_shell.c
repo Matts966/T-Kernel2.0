@@ -3,7 +3,7 @@
 #include <libstr.h>
 #include "wolfmqtt/mqtt_client.h"
 #include "examples/mqttnet.h"
-#include "examples/nbclient/nbclient.h"
+#include "examples/mqttclient/mqttclient.h"
 
 #define NET_CONF_MACHINE  (0)
 #define NET_CONF_EMULATOR (1)
