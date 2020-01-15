@@ -1,0 +1,11 @@
+{
+    "configurations": [
+      {
+        "includePath": [
+            "${myDefaultIncludePath}",
+            "./srcpkg/tkernel_source/include"
+        ]
+      }
+    ],
+    "version": 4
+  }
