@@ -13,17 +13,16 @@ EXPORT ID ObjID[OBJ_KIND_NUM];
 
 ID parent_id;
 
-char line[16];
+char* line;
 
 EXPORT void task_mqtt_shell(INT stacd, VP exinf);
 EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	MQTTCtx mqttCtx;
 	mqtt_init_ctx(&mqttCtx);
-	mqttCtx.app_name = "mqtt_client";
 	mqttCtx.host = "test.mosquitto.org";
 	mqttCtx.port = 1883;
 	mqttCtx.qos = 1;
-	int rc;
+	int rc = MQTT_CODE_SUCCESS;
 
 	while ( 1 ) {
 		tm_putstring("- Push c to connect.\n");
@@ -31,7 +30,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 		tm_putstring("- Push w to wait messages.\n");
 		tm_putstring("- Push s to subscribe to a topic.\n");
 		tm_putstring("- Push k to keep connection.");
-		char c = tm_getchar(-1);
+		char c = tm_getchar(TMO_FEVR);
 		tm_putstring("\n");
 		if (c == 'p') {
 			tm_putstring("topic: ");
@@ -53,7 +52,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 		} else if (c == 'c') {
 			rc = mqttclient_connect(&mqttCtx);
 		}
-		
+
 		if (rc != MQTT_CODE_SUCCESS) {
 			break;
 		}
