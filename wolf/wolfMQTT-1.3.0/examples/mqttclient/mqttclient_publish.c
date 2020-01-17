@@ -20,9 +20,7 @@ int mqttclient_publish(MQTTCtx *mqttCtx) {
     if (mqttCtx->publish.buffer == NULL) mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
     mqttCtx->publish.total_len = (word16)XSTRLEN(mqttCtx->publish.buffer);
 
-    do {
-        rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
-    } while (rc == MQTT_CODE_CONTINUE);
+    rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
 
     PRINTF("MQTT Publish: Topic %s, %s (%d)",
         mqttCtx->publish.topic_name,

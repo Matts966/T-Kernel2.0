@@ -20,9 +20,7 @@ int mqttclient_subscribe(MQTTCtx *mqttCtx) {
             sizeof(mqttCtx->topics) / sizeof(MqttTopic);
     mqttCtx->subscribe.topics = mqttCtx->topics;
 
-    do {
-        rc = MqttClient_Subscribe(&mqttCtx->client, &mqttCtx->subscribe);
-    } while (rc == MQTT_CODE_CONTINUE);
+    rc = MqttClient_Subscribe(&mqttCtx->client, &mqttCtx->subscribe);
 
     PRINTF("MQTT Subscribe: %s (%d)",
         MqttClient_ReturnCodeToString(rc), rc);

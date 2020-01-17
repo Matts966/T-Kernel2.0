@@ -1216,6 +1216,7 @@ void displayErr(int ercd) {
     case E_IO:	mp = "I/O Error";			break;
     case E_RONLY:	mp = "Read Only";			break;
     case E_NOMDA:	mp = "No Media";			break;
+    default: mp = "Unknown error";          break;
     }
 
     tm_putstring(mp);
