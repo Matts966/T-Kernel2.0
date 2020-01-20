@@ -1,9 +1,11 @@
 {
     "configurations": [
       {
+        "name": "Mac",
         "includePath": [
             "${myDefaultIncludePath}",
-            "./srcpkg/tkernel_source/include"
+            "./srcpkg/tkernel_source/include",
+            "./wolf/wolfMQTT-1.3.0"
         ]
       }
     ],
