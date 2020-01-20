@@ -11,13 +11,14 @@ int mqttclient_publish(MQTTCtx *mqttCtx) {
     PRINTF("Publishing...(timeout=%dms)", mqttCtx->cmd_timeout_ms);
 
     /* Publish Topic */
-    XMEMSET(&mqttCtx->publish, 0, sizeof(MqttPublish));
     mqttCtx->publish.retain = 0;
     mqttCtx->publish.qos = mqttCtx->qos;
     mqttCtx->publish.duplicate = 0;
     mqttCtx->publish.topic_name = mqttCtx->topic_name;
     mqttCtx->publish.packet_id = mqtt_get_packetid();
-    if (mqttCtx->publish.buffer == NULL) mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
+    if (mqttCtx->publish.buffer == NULL) {
+        mqttCtx->publish.buffer = (byte*)TEST_MESSAGE;
+    }
     mqttCtx->publish.total_len = (word16)XSTRLEN(mqttCtx->publish.buffer);
 
     rc = MqttClient_Publish(&mqttCtx->client, &mqttCtx->publish);
