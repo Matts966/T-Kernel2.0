@@ -27,7 +27,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 		char c = tm_getchar(TMO_FEVR);
 		tm_putstring("\n");
 		if ( c == 'c' ) {
-			result = mqttclient_connect(&client);;
+			result = mqttclient_connect(&client);
 		}
 		if ( c == 'p' ) {
 			tm_putstring("topic: ");
@@ -42,7 +42,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			strncpy(message, line, sizeof line);
 			message[sizeof line - 1] = '\0';
 			client.publish.buffer = message;
-			result = mqttclient_publish(&client);;
+			result = mqttclient_publish(&client);
 		}
 		if ( c == 's' ) {
 			tm_putstring("topic: ");
@@ -51,13 +51,13 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			strncpy(topic, line, sizeof line);
 			topic[sizeof line - 1] = '\0';
 			client.topic_name = topic;
-			result = mqttclient_subscribe(&client);;
+			result = mqttclient_subscribe(&client);
 		}
 		if ( c == 'w' ) {
-			result = mqttclient_wait(&client);;
+			result = mqttclient_wait(&client);
 		}
 		if ( c == 'k' ) {
-			result = mqttclient_ping(&client);;
+			result = mqttclient_ping(&client);
 		}
 		if ( result != MQTT_CODE_SUCCESS ) {
 			break;
