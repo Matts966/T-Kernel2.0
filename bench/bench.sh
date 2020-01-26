@@ -10,7 +10,7 @@ mkdir -p $tmpD/simple/kernel
 mkdir -p $tmpD/simple/user
 mkdir -p $tmpD/simple/middleware
 TIMEFORMAT=%R
-ITERATION=10
+ITERATION=20
 
 # warmup
 for ((i=1; i<=$ITERATION; i++)); do
