@@ -10,10 +10,8 @@ int mqttclient_wait(MQTTCtx *mqttCtx) {
     PRINTF("MQTT Waiting for message...");
 
     /* Try and read packet */
-    do {
-        rc = MqttClient_WaitMessage(&mqttCtx->client,
-            mqttCtx->cmd_timeout_ms);
-    } while (rc == MQTT_CODE_CONTINUE);
+    rc = MqttClient_WaitMessage(&mqttCtx->client,
+        mqttCtx->cmd_timeout_ms);
 
     if (rc == MQTT_CODE_SUCCESS) {
         return rc;

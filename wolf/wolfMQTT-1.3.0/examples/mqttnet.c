@@ -119,7 +119,8 @@
     static void *context;
     static byte* buf;
     static int buf_len;
-    static ID semid;
+    static ID read_semid;
+    static ID write_semid;
     static int rc;
     static byte peek;
 
@@ -885,8 +886,8 @@ static int NetWrite_ex(void *context, byte* buf, int buf_len,
 
     if (context == NULL || buf == NULL || buf_len <= 0) {
 #ifdef TKERNEL
-        tk_sig_sem(semid, 1);
-        tk_ext_tsk();
+        tk_sig_sem(write_semid, 1);
+        tk_exd_tsk();
         return;
 #endif
         return MQTT_CODE_ERROR_BAD_ARG;
@@ -931,8 +932,8 @@ static int NetWrite_ex(void *context, byte* buf, int buf_len,
                     PRINTF("NetWrite: EAGAIN");
                 }
             #ifdef TKERNEL
-                tk_sig_sem(semid, 1);
-                tk_ext_tsk();
+                tk_sig_sem(write_semid, 1);
+                tk_exd_tsk();
                 return;
             #endif
                 return MQTT_CODE_CONTINUE;
@@ -943,8 +944,8 @@ static int NetWrite_ex(void *context, byte* buf, int buf_len,
         }
     }
 #ifdef TKERNEL
-    tk_sig_sem(semid, 1);
-    tk_ext_tsk();
+    tk_sig_sem(write_semid, 1);
+    tk_exd_tsk();
     return;
 #endif
     return rc;
@@ -965,18 +966,38 @@ static int NetWrite(void *_context, const byte* _buf, int _buf_len,
 	csem.maxsem = 1;
 	csem.isemcnt = 0;
 	csem.sematr = TA_TFIFO | TA_FIRST;
-    semid = tk_cre_sem(&csem);
+    if ( (write_semid = tk_cre_sem(&csem)) <= E_OK ) {
+        PRINTF(" *** tk_cre_sem failed.");
+        displayErr(write_semid);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
     context = _context;
     buf = _buf;
     buf_len = _buf_len;
 
 	t_ctsk.task = NetWrite_ex;
 	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
+        PRINTF(" *** tk_cre_tsk failed.");
+        displayErr(objid);
 		return MQTT_CODE_ERROR_BAD_ARG;
 	}
-    tk_sta_tsk(objid, 0);
-    tk_wai_sem(semid, 1, _timeout_ms);
-    tk_del_tsk(objid);
+    int err;
+    if ( (err = tk_sta_tsk( objid, 0 )) != E_OK ) {
+        PRINTF(" *** tk_sta_tsk failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+    if ( (err = tk_wai_sem(write_semid, 1, _timeout_ms)) != E_OK ) {
+        PRINTF(" *** tk_wai_sem failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+    if ( (err = tk_del_sem(write_semid)) != E_OK ) {
+        PRINTF(" *** tk_del_sem failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+
     return rc;
 #else
     return NetWrite_ex(_context, _buf, _buf_len, _timeout_ms);
@@ -1063,8 +1084,9 @@ static int NetRead_ex(void *context, byte* buf, int buf_len,
             else if (FD_ISSET(STDIN, &recvfds)) {
             #ifdef TKERNEL
                 rc = MQTT_CODE_STDIN_WAKE
-                tk_sig_sem(semid, 1);
-                tk_ext_tsk();
+                tk_sig_sem(read_semid, 1);
+                tk_exd_tsk();
+                return;
             #else
                 return MQTT_CODE_STDIN_WAKE;
             #endif
@@ -1102,8 +1124,8 @@ exit:
         #ifdef WOLFMQTT_NONBLOCK
             if (so_error == EWOULDBLOCK || so_error == EAGAIN) {
             #ifdef TKERNEL
-                tk_sig_sem(semid, 1);
-                tk_ext_tsk();
+                tk_sig_sem(read_semid, 1);
+                tk_exd_tsk();
                 return;
             #else
                 return MQTT_CODE_CONTINUE;
@@ -1119,8 +1141,8 @@ exit:
     }
 
 #ifdef TKERNEL
-    tk_sig_sem(semid, 1);
-    tk_ext_tsk();
+    tk_sig_sem(read_semid, 1);
+    tk_exd_tsk();
     return;
 #else
     return rc;
@@ -1141,7 +1163,11 @@ static int NetRead(void *_context, byte* _buf, int _buf_len, int _timeout_ms)
 	csem.maxsem = 1;
 	csem.isemcnt = 0;
 	csem.sematr = TA_TFIFO | TA_FIRST;
-    semid = tk_cre_sem(&csem);
+    if ( (read_semid = tk_cre_sem(&csem)) <= E_OK ) {
+        PRINTF(" *** tk_cre_sem failed.");
+        displayErr(read_semid);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
     context = _context;
     buf = _buf;
     buf_len = _buf_len;
@@ -1149,17 +1175,53 @@ static int NetRead(void *_context, byte* _buf, int _buf_len, int _timeout_ms)
 
 	t_ctsk.task = NetRead_ex;
 	if ( (objid = tk_cre_tsk( &t_ctsk )) <= E_OK ) {
+        PRINTF(" *** tk_cre_tsk failed.");
+        displayErr(objid);
 		return MQTT_CODE_ERROR_BAD_ARG;
 	}
-
-    tk_sta_tsk(objid, 0);
-    tk_wai_sem(semid, 1, _timeout_ms);
-    tk_del_tsk(objid);
+    int err;
+    if ( (err = tk_sta_tsk( objid, 0 )) != E_OK ) {
+        PRINTF(" *** tk_sta_tsk failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+    if ( (err = tk_wai_sem(read_semid, 1, _timeout_ms)) != E_OK ) {
+        PRINTF(" *** tk_wai_sem failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
+    if ( (err = tk_del_sem(read_semid)) != E_OK ) {
+        PRINTF(" *** tk_del_sem failed.");
+        displayErr(err);
+		return MQTT_CODE_ERROR_BAD_ARG;
+	}
 
     return rc;
 #else
     return NetRead_ex(_context, _buf, _buf_len, _timeout_ms, 0);
 #endif
+}
+
+void displayErr(int ercd) {
+    UB	*mp = NULL;
+    switch(ercd) {
+    case E_MACV:	mp = "Illegal Address";			break;
+    case E_PAR:	mp = "Illegal Parameter";		break;
+    case E_ID:	mp = "Illegal ID Number";		break;
+    case E_CTX:	mp = "Context Error";			break;
+    case E_LIMIT:	mp = "Too Many Parameters";		break;
+    case E_OBJ:	mp = "Abnormal Object Status";		break;
+    case E_NOSPT:	mp = "Not Supported";			break;
+    case E_NOEXS:	mp = "Unknown Device";			break;
+    case E_IO:	mp = "I/O Error";			break;
+    case E_RONLY:	mp = "Read Only";			break;
+    case E_NOMDA:	mp = "No Media";			break;
+    default: mp = "Unknown error";          break;
+    }
+
+    tm_putstring(mp);
+    tm_putstring("\n");
+    return;
 }
 
 #ifdef WOLFMQTT_SN
