@@ -82,6 +82,10 @@ echo "full, $(get_average simple full), $(get_average with-cache full)" >> $tmpD
 echo "kernel, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
 echo "middleware, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
 echo "user, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
+echo
+for file in $(ls */*/result.txt); do
+    echo $file && cat $file && echo
+done
 
 cat $tmpD/result.csv
 
