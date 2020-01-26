@@ -77,17 +77,34 @@ get_average_test() {
     cat sample.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
 }
 
-echo "build average time, normal, with cache" >> $tmpD/result.csv
-echo "full, $(get_average simple full), $(get_average with-cache full)" >> $tmpD/result.csv
-echo "kernel, $(get_average simple kernel), $(get_average with-cache kernel)" >> $tmpD/result.csv
-echo "middleware, $(get_average simple middleware), $(get_average with-cache middleware)" >> $tmpD/result.csv
-echo "user, $(get_average simple user), $(get_average with-cache user)" >> $tmpD/result.csv
+get_stdev() {
+    # cat $tmpD/$1/$2/result.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
+    python << EOF
+with open("$tmpD/$1/$2/result.txt") as f:
+    import statistics
+    print(statistics.stdev(map(float, f.read().split())))
+EOF
+}
+
+get_stdev_test() {
+    # cat $tmpD/$1/$2/result.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
+    python << EOF
+with open("sample.txt") as f:
+    import statistics
+    print(statistics.stdev(map(float, f.read().split())))
+EOF
+}
+
+echo "build average time, step cache, step stdev, file cache, file stdev" >> $tmpD/result.csv
+echo "full, $(get_average simple full), $(get_stdev simple, full), $(get_average with-cache full), $(get_stdev with-cache, full)" >> $tmpD/result.csv
+echo "kernel, $(get_average simple kernel), $(get_stdev simple, kernel), $(get_average with-cache kernel), $(get_stdev with-cache, kernel)" >> $tmpD/result.csv
+echo "middleware, $(get_average simple middleware), $(get_stdev simple, middleware), $(get_average with-cache middleware), $(get_stdev with-cache, middleware)" >> $tmpD/result.csv
+echo "user, $(get_average simple user), $(get_stdev simple, user), $(get_average with-cache user), $(get_stdev with-cache, user)" >> $tmpD/result.csv
 echo
-for file in $(ls */*/result.txt); do
-    echo $file && cat $file && echo
-done
 
 cat $tmpD/result.csv
 
 # analysis url
 # https://colab.research.google.com/drive/1uC00UApcrfsqooM7WtJht3u6xevcbapu
+
+ls /var/folders/_q/1mwpxmn91wj5fs_c_f29mz3h0000gn/T/tmp.RWwzwLYD/
