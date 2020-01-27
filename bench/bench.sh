@@ -88,7 +88,7 @@ EOF
 
 get_stdev_test() {
     # cat $tmpD/$1/$2/result.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
-    python << EOF
+    python3 << EOF
 with open("sample.txt") as f:
     import statistics
     print(statistics.stdev(map(float, f.read().split())))
