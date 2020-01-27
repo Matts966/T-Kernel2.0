@@ -79,7 +79,7 @@ get_average_test() {
 
 get_stdev() {
     # cat $tmpD/$1/$2/result.txt | awk 'ttt += $1  {print ttt/NR}'| tail -1
-    python << EOF
+    python3 << EOF
 with open("$tmpD/$1/$2/result.txt") as f:
     import statistics
     print(statistics.stdev(map(float, f.read().split())))
