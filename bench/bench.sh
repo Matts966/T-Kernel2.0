@@ -13,9 +13,9 @@ TIMEFORMAT=%R
 ITERATION=20
 
 # warmup
-for ((i=1; i<=$ITERATION; i++)); do
-    (cd .. && make build-without-cache)
-done
+# for ((i=1; i<=$ITERATION; i++)); do
+#     (cd .. && make build-without-cache)
+# done
 
 # simple
 for ((i=1; i<=$ITERATION; i++)); do
