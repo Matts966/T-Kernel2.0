@@ -88,7 +88,7 @@ include $(BD)/etc/makerules
 
 # ----------------------------------------------------------------------------
 # source files
-SRC_SYS	= usermain.c
+SRC_SYS	= usermain.c gc.h gc.c log.h log.c
 
 # source files for simple command interpreter
 SRC_SYS	+= appl_main.c command.c examples/mqttnet.c examples/mqttexample.c

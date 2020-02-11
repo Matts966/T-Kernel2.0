@@ -10,4 +10,6 @@ build:
 	DOCKER_BUILDKIT=1 docker build -t qt .
 build-without-cache:
 	DOCKER_BUILDKIT=1 docker build -t qt --no-cache .
+install-gc:
+	cp gc/src/* src
 .PHONY: start restart build

@@ -5,6 +5,8 @@
 #include "examples/mqttnet.h"
 #include "examples/mqttclient/mqttclient.h"
 
+#include "gc.h"
+
 char line[16];
 
 typedef enum { TASK_MQTT_SHELL, OBJ_KIND_NUM } OBJ_KIND;
@@ -68,7 +70,21 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
+int* my_array;
+void some_fun() {
+    my_array = gc_calloc(&gc, 1024, sizeof(int));
+    for (size_t i=0; i<1024; ++i) {
+        my_array[i] = 42;
+    }
+}
+
 EXPORT INT usermain( void ) {
+	int a;
+	gc_start(&gc, &a);
+	some_fun();
+	gc_stop(&gc);
+	my_array[-1];
+
 	T_CTSK t_ctsk;
 	ID objid;
 	t_ctsk.tskatr = TA_HLNG | TA_DSNAME;

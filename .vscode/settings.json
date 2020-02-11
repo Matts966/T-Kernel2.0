@@ -3,6 +3,7 @@
         "mqtt_client.h": "c",
         "settings.h": "c",
         "cerrno": "c",
-        "tkernel.h": "c"
+        "tkernel.h": "c",
+        "errno.h": "c"
     }
 }
