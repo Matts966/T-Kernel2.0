@@ -12,13 +12,18 @@ char line[16];
 typedef enum { TASK_MQTT_SHELL, OBJ_KIND_NUM } OBJ_KIND;
 EXPORT ID ObjID[OBJ_KIND_NUM];
 
+MQTTCtx* context() {
+	MQTTCtx* client = gc_malloc(&gc, sizeof(MQTTCtx));
+	mqtt_init_ctx(client);
+	client->host = "test.mosquitto.org";
+	client->port = 1883;
+	client->qos = 1;
+	return client;
+}
+
 EXPORT void task_mqtt_shell(INT stacd, VP exinf);
 EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
-	MQTTCtx client;
-	mqtt_init_ctx(&client);
-	client.host = "test.mosquitto.org";
-	client.port = 1883;
-	client.qos = 1;
+	MQTTCtx* client = context();
 	int result = MQTT_CODE_SUCCESS;
 	while ( 1 ) {
 		tm_putstring("- Push c to connect.\n");
@@ -29,7 +34,7 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 		char c = tm_getchar(TMO_FEVR);
 		tm_putstring("\n");
 		if ( c == 'c' ) {
-			result = mqttclient_connect(&client);
+			result = mqttclient_connect(client);
 		}
 		if ( c == 'p' ) {
 			tm_putstring("topic: ");
@@ -37,14 +42,14 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			char topic[sizeof line];
 			strncpy(topic, line, sizeof line);
 			topic[sizeof line - 1] = '\0';
-			client.topic_name = topic;
+			client->topic_name = topic;
 			tm_putstring("message: ");
 			tm_getline(line);
 			char message[sizeof line];
 			strncpy(message, line, sizeof line);
 			message[sizeof line - 1] = '\0';
-			client.publish.buffer = message;
-			result = mqttclient_publish(&client);
+			client->publish.buffer = message;
+			result = mqttclient_publish(client);
 		}
 		if ( c == 's' ) {
 			tm_putstring("topic: ");
@@ -52,14 +57,14 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 			char topic[sizeof line];
 			strncpy(topic, line, sizeof line);
 			topic[sizeof line - 1] = '\0';
-			client.topic_name = topic;
-			result = mqttclient_subscribe(&client);
+			client->topic_name = topic;
+			result = mqttclient_subscribe(client);
 		}
 		if ( c == 'w' ) {
-			result = mqttclient_wait(&client);
+			result = mqttclient_wait(client);
 		}
 		if ( c == 'k' ) {
-			result = mqttclient_ping(&client);
+			result = mqttclient_ping(client);
 		}
 		if ( result != MQTT_CODE_SUCCESS ) {
 			break;
@@ -70,20 +75,9 @@ EXPORT void task_mqtt_shell(INT stacd, VP exinf) {
 	tk_ext_tsk();
 }
 
-int* my_array;
-void some_fun() {
-    my_array = gc_calloc(&gc, 1024, sizeof(int));
-    for (size_t i=0; i<1024; ++i) {
-        my_array[i] = 42;
-    }
-}
-
 EXPORT INT usermain( void ) {
-	int a;
+	byte a;
 	gc_start(&gc, &a);
-	some_fun();
-	gc_stop(&gc);
-	my_array[-1];
 
 	T_CTSK t_ctsk;
 	ID objid;
@@ -111,4 +105,6 @@ EXPORT INT usermain( void ) {
 		tk_slp_tsk( TMO_FEVR );
 		tm_putstring(" *** MQTT shell disconnected... Reseted context.\n");
 	}
+
+	gc_stop(&gc);
 }
