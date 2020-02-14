@@ -1,7 +1,7 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
-#include <stdio.h>
+#include <tm/tmonitor.h>
 
 #define LOGLEVEL LOGLEVEL_DEBUG
 
@@ -16,7 +16,7 @@ enum {
 extern const char* log_level_strings[];
 
 #define log(level, fmt, ...) \
-    do { if (level <= LOGLEVEL) fprintf(stderr, "[%s] %s:%s:%d: " fmt "\n", log_level_strings[level], __func__, __FILE__, __LINE__, __VA_ARGS__); } while (0)
+    do { if (level <= LOGLEVEL) tm_printf("[%s] %s:%s:%d: " fmt "\n", log_level_strings[level], __func__, __FILE__, __LINE__, __VA_ARGS__); } while (0)
 
 #define LOG_CRITICAL(fmt, ...) log(LOGLEVEL_CRITICAL, fmt, __VA_ARGS__)
 #define LOG_WARNING(fmt, ...) log(LOGLEVEL_WARNING, fmt, __VA_ARGS__)
